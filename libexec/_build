@@ -7,6 +7,9 @@ DEFINE_string "output" "" "Where to bundle the vagrant box"
 DEFINE_string "release_dir" "$shome/vagrant-$(date +%Y%m%d-%H%M-$$)" "Vagrant instance workarea"
 DEFINE_string "ssh_username" "ubuntu" "Vagrant ssh username"
 
+DEFINE_string builddir "${OVERRIDE_builddir:-$shome/build}" "Build directory"
+DEFINE_string cachedir "${OVERRIDE_cachedir:-$shome/build}" "Cache directory"
+
 function until_port_open {
   local address="$1"; shift
   local port="$1"; shift
@@ -40,4 +43,77 @@ function build_vagrant {
   early_termination
   bundle_vagrant
   delete_keypair "$nm_keypair"
+}
+
+function configure_remote_git_cache {
+  local pth_ssh_config="$1"; shift
+  local tmp_git_env="$(mktemp -t XXXXXXXXX)"
+  printf "export GIT_USER=%s\n" "$LOGNAME" >> "$tmp_git_env"
+  printf "export GIT_PORT=%s\n" "55555" >> "$tmp_git_env"
+  printf "export GIT_REPO=%s\n" "$shome/git-cache" >> "$tmp_git_env"
+  rsync -e "ssh -F $pth_ssh_config" $tmp_git_env default:.git-env
+  rsync -e "ssh -F $pth_ssh_config" $shome/libexec/context-git-cache default:.context-git-cache
+  rm -f $tmp_git_env
+}
+function adjust_build_phase {
+  local nm_hook="$1"; shift
+  local next_phase="${nm_hook##*:}"
+  if [[ "$next_phase" = "$nm_hook" ]]; then
+    BUILD_IMAGE_PHASE="install"
+  else
+    BUILD_IMAGE_PHASE="$next_phase"
+  fi
+  export BUILD_IMAGE_PHASE
+}
+
+function start_image_hook {
+  local build_type="$1"; shift
+  local pth_hook="$shome/libexec/build-boxcar-run"
+
+  if [[ "$#" = 0 ]]; then
+    logger_fatal "missing build boxcar script arg"
+    exit 1
+  fi
+
+  mark_output
+  mark_log "awsme"
+  exec $shome/vendor/projects/awsme/bin/build "$build_type" "$@" "$pth_hook"
+}
+
+function continue_image_hook {
+  local pth_ssh_config="$1"; shift
+
+  if [[ "$#" != 0 ]]; then
+    adjust_build_phase "$1"
+    local raw_hook="$1"; shift
+    local nm_hook="${raw_hook%%:*}"
+    local pth_hook="$shome/libexec/build-boxcar-${nm_hook}"
+
+    mark_output
+    mark_log "$nm_hook"
+    exec $pth_hook "$pth_ssh_config" "$@"
+  fi
+}
+
+function custom_hook {
+  local pth_bootstrap="$1"; shift
+  local pth_ssh_config="$1"; shift
+  local nm_bootstrap="$(basename "$pth_bootstrap")"
+
+  rsync -ia -e "ssh -F '$pth_ssh_config'" "$pth_bootstrap" default:
+  echo 'Acquire::http { Proxy "http://127.0.0.1:55556"; };' | ssh -F "$pth_ssh_config" default sudo tee /etc/apt/apt.conf.d/01proxy 
+  if [[ "${OVERRIDE_cache:-}" = "$FLAGS_FALSE" ]]; then
+    ssh -F "$pth_ssh_config" -R 55555:127.0.0.1:22                         -A default "env                                                                      BUILD_IMAGE_PHASE=$BUILD_IMAGE_PHASE ./$nm_bootstrap"
+  else
+    ssh -F "$pth_ssh_config" -R 55555:127.0.0.1:22 -R 55556:127.0.0.1:3128 -A default "env http_proxy=http://localhost:55556 https_proxy=http://localhost:55556 BUILD_IMAGE_PHASE=$BUILD_IMAGE_PHASE ./$nm_bootstrap"
+  fi
+  ssh -F "$pth_ssh_config" default sudo rm -vf "./$nm_bootstrap" /etc/apt/apt.conf.d/01proxy
+}
+
+function standard_hook {
+  local pth_bootstrap="$1"; shift
+  local pth_ssh_config="$1"; shift
+
+  custom_hook "$pth_bootstrap" "$pth_ssh_config" "$@"
+  continue_image_hook "$pth_ssh_config" "$@"
 }

@@ -1,0 +1,149 @@
+#!/bin/bash
+
+#/ NAME
+#/     build-all - builds vagrant boxes from scratch
+#/
+#/ SYNOPSIS
+#/     bin/build all virtualbox precise
+#/     bin/build all virtualbox precise precise clean ...
+#/     bin/build all aws raring
+#/     bin/build all aws raring raring clean ...
+
+# figure out the project root under which bin, lib live
+shome="$(unset CDPATH; cd -P -- "$(dirname -- "$BASH_SOURCE")/.." && pwd -P)"
+
+# load a jason bourne library
+source "$shome/libexec/_jason"
+require br
+require br/image
+
+DEFINE_boolean build "$FLAGS_FALSE" "Also run the :build hooks"
+DEFINE_string provider "aws" "Vagrant provider"
+DEFINE_string distro "raring" "Ubuntu distro"
+DEFINE_boolean cache "$FLAGS_TRUE" "Use the git and http caches"
+
+function run {
+  logger_info "running $*"
+  "$@"
+}
+
+function refresh {
+  local nm_virt="$1"; shift
+  local nm_input="$1"; shift
+  local nm_output="$1"; shift
+
+  local ssh_username="ubuntu"
+  if [[ "$nm_virt" = "virtualbox" && "${1%%:*}" = "clean" ]]; then
+    ssh_username="vagrant" # TODO this hack goes away if we make our own veewee builds
+  fi
+
+  if vagrant box list | awk -v box="$nm_output" -v virt="$nm_virt" '$1 == box && $2 == "(" virt ")" { counter += 1 } END { exit !counter }'; then
+    vagrant box remove $nm_output $nm_virt
+  fi
+
+  (cd $FLAGS_builddir/${nm_output}.vagrant 2>&- && { vagrant destroy -f 2>&1 > /dev/null; } ) || true
+
+  run $shome/bin/build boxcar $nm_virt --box $nm_input \
+    --release_dir $FLAGS_builddir/${nm_output}.vagrant \
+    --output $FLAGS_builddir/$nm_output.box \
+    --ssh_username "$ssh_username" \
+    "$@" 2>&1 | tee $FLAGS_builddir/$nm_output.log
+  if [[ "$PIPESTATUS" != 0 ]]; then
+    return "$PIPESTATUS"
+  fi
+  vagrant box add $nm_output $FLAGS_builddir/$nm_output.box
+
+  rm -rf $FLAGS_builddir/${nm_output}.vagrant
+}
+
+function build_boxcars {
+  local nm_virt="$1"; shift
+
+  # setup the initial box import
+  output="$1"; shift
+
+  # build intermediate hooks
+  for raw_hook in "$@"; do
+    adjust_build_phase "$raw_hook"
+    nm_hook="${raw_hook%%:*}"
+    logger_info "hook: $nm_hook, phase: $BUILD_IMAGE_PHASE"
+    input="$output"
+
+    if [[ "$nm_hook" = "clean" ]]; then
+      output="$output-${nm_hook}(pre)"
+    elif [[ "$nm_hook" = "$nm_virt" ]]; then
+      output="${output%-clean*}-clean"
+    else
+      output="$output-$(echo $raw_hook | perl -pe 's{:(\w+)}{($1)}g')"
+    fi
+
+    refresh $nm_virt $input $output $raw_hook
+  done
+}
+
+function build_train {
+  local env_distro="$FLAGS_distro"
+  local envsuffix=""
+  
+  if [[ "$FLAGS_provider" = "aws" ]]; then
+    envsuffix="$(ryaml $shome/config/aws.yml environment)"
+    if [[ -n "$envsuffix" ]]; then
+      env_distro="${FLAGS_distro}(${envsuffix})"
+    fi
+  fi
+
+  mark_output
+  mark_log "${env_distro}-${FLAGS_provider}"
+
+  FLAGS_builddir="$shome/build/${env_distro}-${FLAGS_provider}"
+  export OVERRIDE_builddir="$FLAGS_builddir"
+
+  FLAGS_cachedir="$shome/build/${FLAGS_distro}"
+  export OVERRIDE_cachedir="$FLAGS_cachedir"
+
+  export OVERRIDE_run_args="bash -c 'mkdir -p /var/run/sshd; exec /usr/sbin/sshd -D'"
+
+  local train="${env_distro}"
+
+  if [[ "$#" = 0 ]]; then
+    # take a vendor image, make a clean version with provider specifics
+    build_boxcars ${FLAGS_provider}  $train             clean
+    build_boxcars ${FLAGS_provider} "$train-clean(pre)" ${FLAGS_provider}
+    train="$train-clean"
+
+    if [[ "$FLAGS_build" = "$FLAGS_TRUE" ]]; then
+      # build rvm ruby binaries
+      build_boxcars ${FLAGS_provider} $train rvm:build
+
+      # build docker on raring but not containera
+      if [[ "$FLAGS_distro" = "raring" && "$FLAGS_provider" != "shell" ]]; then
+        # build docker binary and ubuntu recise image
+        build_boxcars ${FLAGS_provider} $train docker:build ${FLAGS_distro}:build
+      fi
+    fi
+
+    # install rvm binaries
+    build_boxcars ${FLAGS_provider} $train rvm 
+    train="$train-rvm"
+    
+    # install docker on raring but not on containers
+    if [[ "$FLAGS_distro" = "raring" && "$FLAGS_provider" != "shell" ]]; then
+      build_boxcars ${FLAGS_provider} $train docker ${FLAGS_distro}
+      train="$train-docker-${FLAGS_distro}"
+    fi
+  else
+    build_boxcars "${FLAGS_provider}" "$@"
+  fi
+}
+
+# entry point
+function main {
+  if [[ "$FLAGS_cache" = "$FLAGS_FALSE" ]]; then
+    export OVERRIDE_cache="$FLAGS_cache"
+  fi
+  build_train "$@"
+}
+
+require sub "$BASH_SOURCE" "$@"
+
+

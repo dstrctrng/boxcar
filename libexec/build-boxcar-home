@@ -1,0 +1,51 @@
+#!/bin/bash
+
+#/ NAME
+#/     seed-rvm.sh - copies rvm ruby binaries and runs install-rvm.sh
+#/
+#/ SYNOPSIS
+#/     seed-rvm.sh ssh_config rubies...
+
+function remote_install {
+  set -exfu; cd
+
+  local apt_install="sudo env DEBIAN_FRONTEND=noninteractive aptitude -y install"
+
+  sudo aptitude update
+  $apt_install htop libfuse-dev unzip
+
+  $HOME/.context-git-cache git clone git@github.com:destructuring/home 
+  mv home/.git .
+  rm -rf home
+  git reset --hard
+  $HOME/.context-git-cache make
+  $HOME/.context-git-cache vim -E -c ':source .vimrc' -c :quit meh || true
+
+  rm -f ~/build-boxcar-home ~/.git-env
+}
+
+if [[ "$#" = 0 ]]; then
+  remote_install
+  exit $?
+fi
+
+# figure out the project root under which bin, lib live
+shome="$(unset CDPATH; cd -P -- "$(dirname -- "$BASH_SOURCE")/.." && pwd -P)"
+
+# load a jason bourne library
+source "$shome/libexec/_jason"
+require br
+require br/image
+
+bootstrap="$BASH_SOURCE"
+
+# entry point
+function main {
+  local pth_ssh_config="$1"
+
+  configure_remote_git_cache "$pth_ssh_config"
+
+  standard_hook "$bootstrap" "$@"
+}
+
+require sub "$BASH_SOURCE" "$@"

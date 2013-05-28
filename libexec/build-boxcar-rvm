@@ -1,0 +1,83 @@
+#!/bin/bash
+
+#/ NAME
+#/     seed-rvm.sh - copies rvm ruby binaries and runs install-rvm.sh
+#/
+#/ SYNOPSIS
+#/     seed-rvm.sh ssh_config rubies...
+
+function remote_rvm {
+  local makecmd="$1"; shift
+
+  set -exfu; cd
+
+  local apt_install="sudo env DEBIAN_FRONTEND=noninteractive aptitude -y install"
+  # minimum to build chef, chefspec, foodcritic, minitest-chef-handler, nokogiri, rvm
+  sudo aptitude update
+  $apt_install build-essential libxml2-dev libxslt-dev zlib1g-dev libssl-dev libreadline-dev libyaml-dev
+
+  $HOME/.context-git-cache git clone git@github.com:destructuring/build-rvm
+  cd build-rvm
+}
+
+function remote_build {
+  remote_rvm
+  $HOME/.context-git-cache make binary
+  set +f; mv *.bz2 ~/; set -f
+}
+
+function remote_install {
+  set +f; mv ~/*.bz2 .; set -f
+  remote_rvm
+  $HOME/.context-git-cache make install
+  rm -rf ~/build-boxcar-rvm ~/build-rvm ~/.git-env
+}
+
+if [[ "$#" = 0 ]]; then
+  case "${BUILD_IMAGE_PHASE:-}" in
+    build)
+      remote_build
+      exit $?
+      ;;
+    install)
+      remote_install
+      exit $?
+      ;;
+    *)
+      echo "ERROR: unknown build phase: $BUILD_IMAGE_PHASE" 1>&2
+      exit 1
+  esac
+fi
+
+# figure out the project root under which bin, lib live
+shome="$(unset CDPATH; cd -P -- "$(dirname -- "$BASH_SOURCE")/.." && pwd -P)"
+
+# load a jason bourne library
+source "$shome/libexec/_jason"
+require br
+require br/image
+bootstrap="$BASH_SOURCE"
+
+# entry point
+function main {
+  local pth_ssh_config="$1"
+
+  configure_remote_git_cache "$pth_ssh_config"
+
+  case "${BUILD_IMAGE_PHASE:-}" in
+    build)
+      custom_hook "$bootstrap" "$@"
+      rsync -ia -e "ssh -F '$pth_ssh_config'" default:*.bz2 $FLAGS_cachedir/
+      continue_image_hook "$@"
+      ;;
+    install)
+      set +f; rsync -ia -e "ssh -F '$pth_ssh_config'" $FLAGS_cachedir/ree*bz2 $FLAGS_cachedir/ruby*bz2 default:; set -f
+      standard_hook "$bootstrap" "$@"
+      ;;
+    *)
+      logger_fatal "unknown local build phase $BUILD_IMAGE_PHASE" 1>&2
+      exit 1
+  esac
+}
+
+require sub "$BASH_SOURCE" "$@"

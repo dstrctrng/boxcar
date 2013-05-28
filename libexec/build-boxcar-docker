@@ -1,0 +1,98 @@
+#!/bin/bash
+
+#/ NAME
+#/     seed-rvm.sh - copies rvm ruby binaries and runs build-docker.sh
+#/
+#/ SYNOPSIS
+#/     seed-rvm.sh ssh_config rubies...
+
+function remote_build {
+  set -exfu
+  cd
+
+  local apt_install="sudo env DEBIAN_FRONTEND=noninteractive aptitude -y install"
+
+  sudo aptitude update
+  $apt_install lxc bsdtar libsqlite3-dev git pkg-config
+  echo debconf golang-go/dashboard select false | sudo debconf-set-selections -
+  $apt_install golang
+  $apt_install linux-image-extra-{generic,server,virtual}
+  sudo aptitude hold linux-image-extra-{generic,server,virtual}
+
+  # download latest docker binary that need go 1.0.3 bug fixes
+  wget http://get.docker.io/builds/Linux/x86_64/docker-latest.tgz
+  tar xvfz docker-latest.tgz
+}
+
+function remote_install {
+  set -exfu
+
+  local apt_install="sudo env DEBIAN_FRONTEND=noninteractive aptitude -y install"
+
+  sudo aptitude update
+  $apt_install lxc bsdtar libsqlite3-dev git pkg-config
+  $apt_install linux-image-extra-$(uname -r)
+  sudo aptitude hold linux-image-extra-{generic,server,virtual}
+
+  sudo chown root:root /usr/local/bin/docker
+
+  # docker unit
+  $apt_install runit
+  sudo mkdir -p /services/docker/log
+  sudo bash -c 'echo -e "#!/bin/bash\n\nexec 2>&1\nexec /usr/local/bin/docker -d -D" > /services/docker/run'
+  sudo bash -c 'echo -e "#!/bin/bash\n\nexec 2>&1\nexec svlogd -tt ." > /services/docker/log/run'
+  sudo chmod 755 /services/docker/run /services/docker/log/run
+  sudo ln -nfsv /services/docker /etc/service/docker
+
+  # cleanup
+  rm -rf ~/build-boxcar-docker
+}
+
+if [[ "$#" = 0 ]]; then
+  case "${BUILD_IMAGE_PHASE:-}" in
+    build)
+      remote_build
+      exit $?
+      ;;
+    install)
+      remote_install
+      exit $?
+      ;;
+    *)
+      echo "ERROR: unknown build phase: $BUILD_IMAGE_PHASE" 1>&2
+      exit 1
+  esac
+fi
+
+# figure out the project root under which bin, lib live
+shome="$(unset CDPATH; cd -P -- "$(dirname -- "$BASH_SOURCE")/.." && pwd -P)"
+
+# load a jason bourne library
+source "$shome/libexec/_jason"
+require br
+require br/image
+
+bootstrap="$BASH_SOURCE"
+
+# entry point
+function main {
+  local pth_ssh_config="$1"; shift
+
+  case "${BUILD_IMAGE_PHASE:-}" in
+    build)
+      custom_hook "$bootstrap" "$pth_ssh_config" "$@"
+      rsync -ia -e "ssh -F '$pth_ssh_config'" default:docker-latest/docker $FLAGS_cachedir/
+      continue_image_hook "$pth_ssh_config" "$@"
+      ;;
+    install)
+      rsync -ia -e "ssh -F '$pth_ssh_config'" $FLAGS_cachedir/docker default:
+      ssh -F $pth_ssh_config default sudo mv docker /usr/local/bin/
+      standard_hook "$bootstrap" "$pth_ssh_config" "$@"
+      ;;
+    *)
+      logger_fatal "unknown local build phase $BUILD_IMAGE_PHASE" 1>&2
+      exit 1
+  esac
+}
+
+require sub "$BASH_SOURCE" "$@"

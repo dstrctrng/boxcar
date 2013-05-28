@@ -1,0 +1,114 @@
+#!/bin/bash
+
+#/ NAME
+#/     seed-rvm.sh - copies rvm ruby binaries and runs build-docker.sh
+#/
+#/ SYNOPSIS
+#/     seed-rvm.sh ssh_config rubies...
+
+nm_distro="raring"
+
+function remote_build {
+  set -exfu
+
+  cd
+
+  local apt_install="sudo env DEBIAN_FRONTEND=noninteractive aptitude -y install"
+
+  sudo aptitude update
+  $apt_install debootstrap
+  mkdir image
+  sudo debootstrap --arch amd64 \
+                  --include=language-pack-en,aptitude,wget,curl,git,rsync,make,openssh-server \
+                  ${nm_distro} image http://archive.ubuntu.com/ubuntu/
+
+  printf "%s\n%s\n" "#!/bin/bash" "exit 101" | sudo tee image/usr/sbin/policy-rc.d
+  sudo chmod 0755 image/usr/sbin/policy-rc.d
+
+  sudo chroot image apt-get install -y minimal^ server^ standard^
+
+  cat /etc/apt/sources.list \
+    | DISTRO="${nm_distro}" perl -ne 'if (m{^deb}) { s{(\S+\s+\S+)\s+(\S+)}{$beg=$1; $distro=$2; $distro =~ s{\w+}{$ENV{'DISTRO'}}; "$beg $distro"}e; print; }' | sudo tee image/etc/apt/sources.list > /dev/null
+
+  sudo chroot image aptitude update
+  sudo chroot image aptitude dist-upgrade -y
+  sudo chroot image aptitude safe-upgrade -y
+
+  # don't upgrade kernel hereafter
+  sudo chroot image aptitude hold linux-{,{headers,image}-}{generic,server,virtual}
+
+  # create ubuntu user
+  sudo chroot image groupadd -g 1000 ubuntu
+  sudo chroot image useradd -g ubuntu -u 1000 -m ubuntu
+  printf "%s\n" "ubuntu ALL=(ALL) NOPASSWD:ALL" | sudo tee image/etc/sudoers.d/90-cloud-init-users > /dev/null
+
+  # allow vagrant ssh using insecure key
+  sudo mkdir -p image/home/ubuntu/.ssh
+  sudo chmod 700 image/home/ubuntu/.ssh
+  cat ~/vagrant.pub | sudo tee image/home/ubuntu/.ssh/authorized_keys
+  sudo chmod 600 image/home/ubuntu/.ssh/authorized_keys
+  sudo chroot image chown -R ubuntu:ubuntu /home/ubuntu
+
+  # docker image
+  sudo tar cfpj ${nm_distro}.tar.bz2 -C image .
+}
+
+function remote_install {
+  set -exfu
+
+  cd
+
+  cat ${nm_distro}.tar.bz2 | docker import - ${nm_distro}
+  sudo rm -f ${nm_distro}.tar.bz2
+
+  rm -f ~/build-boxcar-${nm_distro}
+}
+
+if [[ "$#" = 0 ]]; then
+  case "${BUILD_IMAGE_PHASE:-}" in
+    build)
+      remote_build
+      exit $?
+      ;;
+    install)
+      remote_install
+      exit $?
+      ;;
+    *)
+      echo "ERROR: unknown build phase: $BUILD_IMAGE_PHASE" 1>&2
+      exit 1
+  esac
+fi
+
+# figure out the project root under which bin, lib live
+shome="$(unset CDPATH; cd -P -- "$(dirname -- "$BASH_SOURCE")/.." && pwd -P)"
+
+# load a jason bourne library
+source "$shome/libexec/_jason"
+require br
+require br/image
+
+bootstrap="$BASH_SOURCE"
+
+# entry point
+function main {
+  local pth_ssh_config="$1"; shift
+
+  case "${BUILD_IMAGE_PHASE:-}" in
+    build)
+      rsync -ia -e "ssh -F '$pth_ssh_config'" $shome/config/vagrant.pub default:
+      custom_hook "$bootstrap" "$pth_ssh_config" "$@"
+      rsync -ia -e "ssh -F '$pth_ssh_config'" default:${nm_distro}.tar.bz2 $FLAGS_cachedir/
+      continue_image_hook "$pth_ssh_config" "$@"
+      ;;
+    install)
+      rsync -ia -e "ssh -F '$pth_ssh_config'" $FLAGS_cachedir/${nm_distro}.tar.bz2 default:
+      standard_hook "$bootstrap" "$pth_ssh_config" "$@"
+      ;;
+    *)
+      logger_fatal "unknown local build phase $BUILD_IMAGE_PHASE" 1>&2
+      exit 1
+  esac
+}
+
+require sub "$BASH_SOURCE" "$@"
