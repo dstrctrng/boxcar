@@ -1,0 +1,115 @@
+#!/bin/bash
+
+#/ NAME
+#/     build clean -- builds a clean vagrant box based on awsme with customizations
+#/
+#/ SYNOPSIS
+#/   bin/build clean
+#/
+#/ EXAMPLES
+#/     $ bin/build clean
+
+# figure out the project root under which bin, lib live
+shome="$(cd -P -- "$(dirname -- "$BASH_SOURCE")/.." && pwd -P)"
+
+# load a jason bourne library
+source "$shome/libexec/_jason"
+require awsme
+require build
+
+function vbox_state {
+  local id_instance="$1"; shift
+  VBoxManage showvminfo "$id_instance" --machinereadable | awk '$1 ~ /^VMState=/ { split($1,a,"="); split(a[2],b,"\""); print b[2] }'
+}
+
+function until_vagrant {
+  local wanted="$1"; shift
+
+  logger_info "until $wanted"
+
+  if [[ ! -f $FLAGS_release_dir/.vagrant/machines/default/virtualbox/id ]]; then
+    return 1
+  fi
+
+  local id_instance="$(cat $FLAGS_release_dir/.vagrant/machines/default/virtualbox/id)"
+
+  while true; do
+    local current_state="$(vbox_state "$id_instance")"
+    if [[ "$current_state" = "$wanted" ]]; then
+      echo
+      break
+    fi
+    echo -n "."
+    sleep 5
+  done
+}
+
+function forwarded_ssh_port {
+  local id_instance="$(cat $FLAGS_release_dir/.vagrant/machines/default/virtualbox/id)"
+  VBoxManage showvminfo "$id_instance" --machinereadable | awk '$1 ~ /^Forwarding\(.*?,22"/ { split($1,a,","); print a[4] }'
+}
+
+function conf_vagrant {
+  local nm_box="$1"; shift
+
+  local ver_vbox="$(VBoxManage --version | cut -dr -f1)"
+
+  local tmp_dna="$(mktemp -t XXXXXXXXX)"
+  cat > "$tmp_dna" <<EOF
+  { 
+    "run_list": ["vagrant::virtualbox"], 
+    "vagrant": { 
+      "box": "$nm_box",
+      "release_dir": "$FLAGS_release_dir",
+      "ssh_username": "$FLAGS_ssh_username"
+    }
+  }
+EOF
+  $shome/bin/cook -j "$tmp_dna"
+  rm -f "$tmp_dna"
+}
+
+function build_type {
+  echo "virtualbox"
+}
+
+function build_keypair {
+  true
+}
+
+function delete_keypair {
+  true
+}
+
+function early_termination {
+  true
+}
+
+function bundle_vagrant {
+  if [[ -z "$FLAGS_output" ]]; then
+    return 0
+  fi
+
+  rm -f "$FLAGS_output"
+  (cd $FLAGS_release_dir && BUNDLE_GEMFILE="$shome/Gemfile" bundle exec vagrant package --output ${FLAGS_output})
+  (cd $FLAGS_release_dir && BUNDLE_GEMFILE="$shome/Gemfile" bundle exec vagrant destroy -f)
+}
+
+function demo_vagrant {
+  local nm_keypair="$1"; shift
+  local id_image="$1"; shift
+
+  conf_vagrant "$id_image"
+  (cd $FLAGS_release_dir && BUNDLE_GEMFILE="$shome/Gemfile" bundle exec vagrant up --provider virtualbox)
+  until_vagrant "running"
+  until_port_open localhost "$(forwarded_ssh_port)"
+  demo_in_vagrant "$@"
+}
+
+# entry point
+function main {
+  cd $shome
+  time build_vagrant "$@"
+}
+
+require sub "$BASH_SOURCE" "$@"

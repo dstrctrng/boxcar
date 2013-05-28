@@ -1,0 +1,221 @@
+#!/bin/bash
+
+#/ NAME
+#/     build clean -- builds a clean vagrant box based on awsme with customizations
+#/
+#/ SYNOPSIS
+#/   bin/build clean
+#/
+#/ EXAMPLES
+#/     $ bin/build clean
+
+# figure out the project root under which bin, lib live
+shome="$(cd -P -- "$(dirname -- "$BASH_SOURCE")/.." && pwd -P)"
+
+# load a jason bourne library
+source "$shome/libexec/_jason"
+require awsme
+require build
+
+DEFINE_string "ami" "" "AMI to use for bootstrap, defaults to latest Ubuntu cloud image"
+DEFINE_string 'region' 'us-east-1' 'AWS region'
+DEFINE_string 'disk' 'ebs' 'AWS disk type'
+DEFINE_string 'arch' 'amd64' 'AWS arch'
+DEFINE_string 'instype' 'm1.large' "AWS instance type"
+
+function pick_ami {
+	# This selects the most recent release Ubuntu cloud image
+  curl -s http://cloud-images.ubuntu.com/rss/${FLAGS_release}-release.xml | \
+    awk '$1 ~ /^<br>/ { sub(/^<br>/, "", $0); print }' | \
+    awk -v region="$FLAGS_region" -v disk="$FLAGS_disk" -v arch="$FLAGS_arch" '$1 == region && $3 == arch && $4 == disk { ami = $2 } END { print ami }'
+}
+
+function while_ec2 {
+  logger_info "while $@"
+
+  while true; do
+    local status="$(instance_status)"
+
+    local wanted
+    for wanted in "$@"; do
+      if [[ "$status" = "$wanted" || -z "$status" ]]; then
+        echo -n "."
+        sleep 5
+        continue 2
+      fi
+    done
+
+    break
+  done
+  
+  echo
+}
+
+function until_vagrant {
+  logger_info "waiting for $@"
+
+  while true; do
+    local status="$(instance_status)"
+
+    local wanted
+    for wanted in "$@"; do
+      if [[ "$status" = "$wanted" ]]; then
+        break 2
+      fi
+    done
+    echo -n "."
+    sleep 5
+  done
+
+  echo
+}
+
+function until_ami {
+  logger_info "waiting for $@"
+
+  local id_ami="$1"; shift
+
+  while true; do
+    local status="$(image_status "$id_ami")"
+
+    local wanted
+    for wanted in "$@"; do
+      if [[ "$status" = "$wanted" ]]; then
+        break 2
+      elif [[ "$status" = "failed" ]]; then
+        logger_fatal "ami failed to bundle"
+        exit 1
+      fi
+    done
+    echo -n "."
+    sleep 5
+  done
+
+  echo
+}
+
+function instance_status {
+  if [[ ! -f "$FLAGS_release_dir/.vagrant/machines/default/aws/id" ]]; then
+    echo "null"
+  fi
+
+  id_instance="$(cat $FLAGS_release_dir/.vagrant/machines/default/aws/id)"
+  ec2-describe-instances --region "$FLAGS_region" "$id_instance" | awk '$1 == "INSTANCE" { print $4 }'
+}
+
+function image_status {
+  ec2-describe-images --region "$FLAGS_region" "$id_image" | awk '$1 == "IMAGE" { print $5 }'
+}
+
+function conf_vagrant {
+  local nm_box="$1"; shift
+  local nm_keypair="$1"; shift
+  local pth_private_key_path="$1"; shift
+
+  local tmp_dna="$(mktemp -t XXXXXXXXX)"
+  cat > "$tmp_dna" <<EOF
+  { 
+    "run_list": ["vagrant::aws"], 
+    "vagrant": { 
+      "box": "${nm_box}",
+      "release_dir": "$FLAGS_release_dir",
+      "access_key_id": "$AWS_ACCESS_KEY",
+      "secret_access_key": "$AWS_SECRET_KEY",
+      "keypair_name": "$nm_keypair",
+      "instance_type": "m1.large",
+      "ssh_username": "$FLAGS_ssh_username",
+      "ssh_private_key_path": "$pth_private_key_path"
+    }
+  }
+EOF
+  $shome/bin/cook -j "$tmp_dna"
+  rm -f "$tmp_dna"
+}
+
+function build_type {
+  echo "ec2"
+}
+
+function build_keypair {
+  local nm_keypair="tmp-build-ami-keypair-${USER:-${LOGNAME:-}}-$(date +%s)-$$"
+  {
+    rm -f "$FLAGS_release_dir/.id_rsa"
+    ssh-keygen -N "" -f "$FLAGS_release_dir/.id_rsa"
+    ec2-import-keypair --region $FLAGS_region --public-key-file "$FLAGS_release_dir/.id_rsa.pub" $nm_keypair
+  } 1>&2
+
+  echo "$nm_keypair"
+}
+
+function delete_keypair {
+  local nm_keypair="$1"; shift
+  ec2-delete-keypair --region $FLAGS_region $nm_keypair
+}
+
+function early_termination {
+  local status="$(instance_status)"
+  if [[ "$status" = "terminated" ]]; then
+    logger_fatal "Instance terminated after bootstrap, expecting stopped"
+    return 1
+  elif [[ "$status" = "null" ]]; then
+    logger_fatal "Instance didn't start"
+    return 1
+  fi
+} 
+
+function bundle_vagrant {
+  if [[ -z "$FLAGS_output" ]]; then
+    return 0
+  fi
+
+  local nm_ami=`date "+$(basename $FLAGS_output .box | perl -pe 's{:(\w+)}{\($1\)}g')_%Y-%m-%d-%H-%M"`
+  local id_instance="$(cat $FLAGS_release_dir/.vagrant/machines/default/aws/id)"
+
+  logger_info "creating image $nm_ami from instance $id_instance"
+
+  local id_image="$(ec2-create-image --region "$FLAGS_region" -K $EC2_PRIVATE_KEY -C $EC2_CERT -n $nm_ami $id_instance | awk '$1 == "IMAGE" {print $2}')"
+  if [[ -z "$id_image" ]]; then
+    logger_fatal "could not retrieve ami id"
+    return 1
+  fi
+  until_ami "$id_image" "available"
+  (cd $FLAGS_release_dir && BUNDLE_GEMFILE="$shome/Gemfile" bundle exec vagrant destroy -f)
+
+  local tmp_metadata="$(mktemp -d -t XXXXXXXXX)"
+  cat > "$tmp_metadata/metadata.json" << __EOF
+  {
+        "provider": "aws"
+  }
+__EOF
+  cat > "$tmp_metadata/Vagrantfile" << __EOF
+  Vagrant.configure("2") do |config|
+    config.vm.provider :aws do |aws|
+      aws.ami = "$id_image"
+    end
+  end
+__EOF
+  rm -f "$FLAGS_output"
+  tar cvfz "$FLAGS_output" -C "$tmp_metadata" metadata.json Vagrantfile
+  rm -rf "$tmp_metadata"
+} 
+
+function demo_vagrant {
+  local nm_keypair="$1"; shift
+  local nm_box="$1"; shift
+
+  conf_vagrant "$nm_box" "$nm_keypair" "$FLAGS_release_dir/.id_rsa"
+  (cd $FLAGS_release_dir && BUNDLE_GEMFILE="$shome/Gemfile" bundle exec vagrant up --provider aws)
+  demo_in_vagrant "$@"
+}
+
+function forwarded_ssh_port {
+  echo "22"
+}
+
+# entry point
+function main {
+  cd $shome
+  time build_vagrant "$@"
+}
+
+require sub "$BASH_SOURCE" "$@"

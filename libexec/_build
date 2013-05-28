@@ -1,0 +1,43 @@
+#!/bin/bash
+
+# parse the command-line
+DEFINE_string "boxname" "" "Vagrant box name"
+DEFINE_string 'release' 'precise' 'Ubuntu release'
+DEFINE_string "output" "" "Where to bundle the vagrant box"
+DEFINE_string "release_dir" "$shome/vagrant-$(date +%Y%m%d-%H%M-$$)" "Vagrant instance workarea"
+DEFINE_string "ssh_username" "ubuntu" "Vagrant ssh username"
+
+function until_port_open {
+  local address="$1"; shift
+  local port="$1"; shift
+
+  logger_info "until $address:$port"
+
+  while true; do
+    if nc -z "$address" "$port"; then
+      echo
+      break
+    fi
+    echo -n "."
+    sleep 5
+  done
+}
+
+function demo_in_vagrant {
+  local pth_custom="${@:$(($#))}"
+
+  local tmp_ssh_config="$(mktemp -t XXXXXXXXX)"
+  (cd $FLAGS_release_dir && BUNDLE_GEMFILE="$shome/Gemfile" bundle exec vagrant ssh-config | sed -n '/^Host/,$p' > "$tmp_ssh_config")
+  $pth_custom "$tmp_ssh_config" "${@:1:$(($#-1))}"
+  rm -f "$tmp_ssh_config"
+}
+
+function build_vagrant {
+  mkdir -p $FLAGS_release_dir
+
+  local nm_keypair="$(build_keypair)"
+  demo_vagrant "$nm_keypair" "$FLAGS_boxname" "$@"
+  early_termination
+  bundle_vagrant
+  delete_keypair "$nm_keypair"
+}
