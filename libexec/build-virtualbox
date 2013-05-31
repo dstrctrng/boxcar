@@ -1,20 +1,20 @@
 #!/bin/bash
 
 #/ NAME
-#/     build clean -- builds a clean vagrant box based on awsme with customizations
+#/     build virtualbox - builds a train with virtualbox provider
 #/
 #/ SYNOPSIS
-#/   bin/build clean
+#/   bin/build virtualbox
 #/
 #/ EXAMPLES
-#/     $ bin/build clean
+#/     $ bin/build virtualbox
 
 # figure out the project root under which bin, lib live
 shome="$(cd -P -- "$(dirname -- "$BASH_SOURCE")/.." && pwd -P)"
 
 # load a jason bourne library
 source "$shome/libexec/_jason"
-require awsme
+require boxcar
 require build
 
 function vbox_state {

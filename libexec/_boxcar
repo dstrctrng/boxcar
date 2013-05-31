@@ -76,8 +76,8 @@ function start_image_hook {
   fi
 
   mark_output
-  mark_log "awsme"
-  exec $shome/vendor/projects/awsme/bin/build "$build_type" "$@" "$pth_hook"
+  mark_log "boxcar"
+  exec $shome//bin/build "$build_type" "$@" "$pth_hook"
 }
 
 function continue_image_hook {
