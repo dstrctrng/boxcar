@@ -23,5 +23,4 @@ function main {
   start_image_hook "$@"
 }
 
-main "$@"
-
+require sub "$BASH_SOURCE" "$@"

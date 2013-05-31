@@ -10,6 +10,8 @@ DEFINE_string "ssh_username" "ubuntu" "Vagrant ssh username"
 DEFINE_string builddir "${OVERRIDE_builddir:-$shome/build}" "Build directory"
 DEFINE_string cachedir "${OVERRIDE_cachedir:-$shome/build}" "Cache directory"
 
+DEFINE_provider "provider" "" "Vagrant provider"
+
 function until_port_open {
   local address="$1"; shift
   local port="$1"; shift
@@ -67,7 +69,6 @@ function adjust_build_phase {
 }
 
 function start_image_hook {
-  local build_type="$1"; shift
   local pth_hook="$shome/libexec/build-boxcar-run"
 
   if [[ "$#" = 0 ]]; then
@@ -77,7 +78,7 @@ function start_image_hook {
 
   mark_output
   mark_log "boxcar"
-  exec $shome//bin/build "$build_type" "$@" "$pth_hook"
+  exec $shome/bin/build train "$FLAGS_provider" "$@" "$pth_hook"
 }
 
 function continue_image_hook {

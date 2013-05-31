@@ -42,7 +42,7 @@ function refresh {
 
   (cd $FLAGS_builddir/${nm_output}.vagrant 2>&- && { vagrant destroy -f 2>&1 > /dev/null; } ) || true
 
-  run $shome/bin/build boxcar $nm_virt --box $nm_input \
+  run $shome/bin/build boxcar --provider $nm_virt --box $nm_input \
     --release_dir $FLAGS_builddir/${nm_output}.vagrant \
     --output $FLAGS_builddir/$nm_output.box \
     --ssh_username "$ssh_username" \

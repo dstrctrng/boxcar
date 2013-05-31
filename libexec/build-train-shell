@@ -15,7 +15,6 @@ shome="$(cd -P -- "$(dirname -- "$BASH_SOURCE")/.." && pwd -P)"
 # load a jason bourne library
 source "$shome/libexec/_jason"
 require boxcar
-require build
 
 DEFINE_string "image" "ubuntu" "Image to use for bootstrap, defaults to public ubuntu image"
 DEFINE_string "script" "${OVERRIDE_script:-"$(BUNDLE_GEMFILE=$shome/Gemfile bundle show vagrant-shell)/libexec/shell-docker"}" "Shell script for vagrant-shell"
