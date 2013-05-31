@@ -13,6 +13,8 @@ shome="$(unset CDPATH; cd -P -- "$(dirname -- "$BASH_SOURCE")/.." && pwd -P)"
 source "$shome/libexec/_jason"
 require boxcar
 
+DEFINE_string provider "" "Vagrant provider to start the train"
+
 # entry point
 function main {
   if [[ "$#" = 0 ]]; then

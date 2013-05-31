@@ -10,8 +10,6 @@ DEFINE_string "ssh_username" "ubuntu" "Vagrant ssh username"
 DEFINE_string builddir "${OVERRIDE_builddir:-$shome/build}" "Build directory"
 DEFINE_string cachedir "${OVERRIDE_cachedir:-$shome/build}" "Cache directory"
 
-DEFINE_provider "provider" "" "Vagrant provider"
-
 function until_port_open {
   local address="$1"; shift
   local port="$1"; shift
