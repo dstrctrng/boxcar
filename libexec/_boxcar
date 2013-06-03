@@ -1,14 +1,24 @@
 #!/bin/bash
 
+if [[ "$#" > 0 ]]; then
+  BOXCAR="$1"; shift
+else
+  : ${BOXCAR:="$(unset CDPATH; cd -P -- "$(dirname -- "${BASH_SOURCE}")/.." && pwd -P)"}
+fi
+
+export BOXCAR
+
+PATH="$PATH:$(unset CDPATH; cd -P -- "$(dirname -- "${BASH_SOURCE}")/.." && pwd -P)/libexec"
+
 # parse the command-line
 DEFINE_string "boxname" "" "Vagrant box name"
 DEFINE_string 'release' 'precise' 'Ubuntu release'
 DEFINE_string "output" "" "Where to bundle the vagrant box"
-DEFINE_string "release_dir" "$shome/vagrant-$(date +%Y%m%d-%H%M-$$)" "Vagrant instance workarea"
+DEFINE_string "release_dir" "$BOXCAR/vagrant-$(date +%Y%m%d-%H%M-$$)" "Vagrant instance workarea"
 DEFINE_string "ssh_username" "ubuntu" "Vagrant ssh username"
 
-DEFINE_string builddir "${OVERRIDE_builddir:-$shome/build}" "Build directory"
-DEFINE_string cachedir "${OVERRIDE_cachedir:-$shome/build}" "Cache directory"
+DEFINE_string builddir "${OVERRIDE_builddir:-$BOXCAR/build}" "Build directory"
+DEFINE_string cachedir "${OVERRIDE_cachedir:-$BOXCAR/build}" "Cache directory"
 
 function until_port_open {
   local address="$1"; shift
@@ -76,6 +86,7 @@ function start_image_hook {
 
   mark_output
   mark_log "boxcar"
+  echo exec $shome/bin/build train "$FLAGS_provider" "$@" "$pth_hook"
   exec $shome/bin/build train "$FLAGS_provider" "$@" "$pth_hook"
 }
 

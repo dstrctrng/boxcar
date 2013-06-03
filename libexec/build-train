@@ -42,7 +42,7 @@ function refresh {
 
   (cd $FLAGS_builddir/${nm_output}.vagrant 2>&- && { vagrant destroy -f 2>&1 > /dev/null; } ) || true
 
-  run $shome/bin/build boxcar --provider $nm_virt --box $nm_input \
+  run $shome/bin/new boxcar --provider $nm_virt --box $nm_input \
     --release_dir $FLAGS_builddir/${nm_output}.vagrant \
     --output $FLAGS_builddir/$nm_output.box \
     --ssh_username "$ssh_username" \
@@ -94,10 +94,10 @@ function build_train {
   mark_output
   mark_log "${env_distro}-${FLAGS_provider}"
 
-  FLAGS_builddir="$shome/build/${env_distro}-${FLAGS_provider}"
+  FLAGS_builddir="$BOXCAR/build/${env_distro}-${FLAGS_provider}"
   export OVERRIDE_builddir="$FLAGS_builddir"
 
-  FLAGS_cachedir="$shome/build/${FLAGS_distro}"
+  FLAGS_cachedir="$BOXCAR/build/${FLAGS_distro}"
   export OVERRIDE_cachedir="$FLAGS_cachedir"
 
   export OVERRIDE_run_args="bash -c 'mkdir -p /var/run/sshd; exec /usr/sbin/sshd -D'"
