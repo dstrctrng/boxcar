@@ -229,8 +229,7 @@ _flags_define()
   # TODO(kward): check for validity of the flag name (e.g. dashes)
 
   # check whether the flag name is reserved
-  echo " ${FLAGS_RESERVED} " |grep " ${_flags_name_} " >/dev/null
-  if [ $? -eq 0 ]; then
+  if echo " ${FLAGS_RESERVED} " |grep " ${_flags_name_} " >/dev/null; then
     flags_error="flag name (${_flags_name_}) is reserved"
     _flags_return_=${FLAGS_ERROR}
   fi
@@ -243,6 +242,7 @@ _flags_define()
     flags_error="short flag required for (${_flags_name_}) on this platform"
     _flags_return_=${FLAGS_ERROR}
   fi
+
 
   # check for existing long name definition
   if [ ${_flags_return_} -eq ${FLAGS_TRUE} ]; then
@@ -438,8 +438,7 @@ _flags_itemInList()
   _flags_str_=$1
   shift
 
-  echo " ${*:-} " |grep " ${_flags_str_} " >/dev/null
-  if [ $? -eq 0 ]; then
+  if echo " ${*:-} " |grep " ${_flags_str_} " >/dev/null; then
     flags_return=${FLAGS_TRUE}
   else
     flags_return=${FLAGS_FALSE}

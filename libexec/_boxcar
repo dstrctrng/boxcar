@@ -11,6 +11,7 @@ export BOXCAR
 PATH="$PATH:$(unset CDPATH; cd -P -- "$(dirname -- "${BASH_SOURCE}")/.." && pwd -P)/libexec"
 
 # parse the command-line
+
 DEFINE_string "boxname" "" "Vagrant box name"
 DEFINE_string 'release' "" 'Ubuntu release'
 DEFINE_string "output" "" "Where to bundle the vagrant box"
