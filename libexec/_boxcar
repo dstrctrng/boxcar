@@ -11,11 +11,11 @@ export BOXCAR
 PATH="$PATH:$(unset CDPATH; cd -P -- "$(dirname -- "${BASH_SOURCE}")/.." && pwd -P)/libexec"
 
 # parse the command-line
-DEFINE_string "boxname" "" "Vagrant box name"
-DEFINE_string 'release' 'precise' 'Ubuntu release'
-DEFINE_string "output" "" "Where to bundle the vagrant box"
-DEFINE_string "release_dir" "$BOXCAR/vagrant-$(date +%Y%m%d-%H%M-$$)" "Vagrant instance workarea"
-DEFINE_string "ssh_username" "ubuntu" "Vagrant ssh username"
+DEFINE_string "boxname" "${OVERRIDE_boxname:-}" "Vagrant box name"
+DEFINE_string 'release' "${OVERRIDE_release:-}" 'Ubuntu release'
+DEFINE_string "output" "${OVERRIDE_output:-}" "Where to bundle the vagrant box"
+DEFINE_string "release_dir" "${OVERRIDE_release_dir:-$BOXCAR/vagrant-$(date +%Y%m%d-%H%M-$$)}" "Vagrant instance workarea"
+DEFINE_string "ssh_username" "${OVERRIDE_ssh_username:-ubuntu}" "Vagrant ssh username"
 
 DEFINE_string builddir "${OVERRIDE_builddir:-$BOXCAR/build}" "Build directory"
 DEFINE_string cachedir "${OVERRIDE_cachedir:-$BOXCAR/build}" "Cache directory"
@@ -86,7 +86,6 @@ function start_image_hook {
 
   mark_output
   mark_log "boxcar"
-  echo exec $shome/bin/build train "$FLAGS_provider" "$@" "$pth_hook"
   exec $shome/bin/build train "$FLAGS_provider" "$@" "$pth_hook"
 }
 
