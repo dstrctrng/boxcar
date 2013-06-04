@@ -16,20 +16,20 @@ function remote_rvm {
   sudo aptitude update
   $apt_install build-essential libxml2-dev libxslt-dev zlib1g-dev libssl-dev libreadline-dev libyaml-dev
 
-  $HOME/with-git-cache git clone git@github.com:destructuring/build-rvm
+  git clone git@github.com:destructuring/build-rvm
   cd build-rvm
 }
 
 function remote_build {
   remote_rvm
-  $HOME/with-git-cache make binary
+  make binary
   set +f; mv *.bz2 ~/; set -f
 }
 
 function remote_install {
   set +f; mv ~/*.bz2 .; set -f
   remote_rvm
-  $HOME/with-git-cache make install
+  make install
   rm -rf ~/build-boxcar-rvm ~/build-rvm ~/.git-env
 }
 

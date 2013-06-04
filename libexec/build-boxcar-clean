@@ -103,8 +103,7 @@ bootstrap="$BASH_SOURCE"
 function main {
   local pth_ssh_config="$1"
 
-  # with-git-cache script
-  rsync -ia -e "ssh -F $pth_ssh_config" $shome/libexec/with-git-cache default:with-git-cache
+  configure_remote_git_cache "$pth_ssh_config"
 
   standard_hook "$bootstrap" "$@"
 }

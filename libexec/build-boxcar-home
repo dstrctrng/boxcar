@@ -14,12 +14,12 @@ function remote_install {
   sudo aptitude update
   $apt_install htop libfuse-dev unzip
 
-  $HOME/with-git-cache git clone git@github.com:destructuring/home 
+  git clone git@github.com:destructuring/home 
   mv home/.git .
   rm -rf home
   git reset --hard
-  $HOME/with-git-cache make
-  $HOME/with-git-cache vim -E -c ':source .vimrc' -c :quit meh || true
+  make
+  vim -E -c ':source .vimrc' -c :quit meh || true
 
   rm -f ~/build-boxcar-home ~/.git-env
 }

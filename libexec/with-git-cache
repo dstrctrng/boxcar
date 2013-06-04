@@ -15,4 +15,4 @@ if [[ -n "${GIT_HOST:-}" ]]; then
   chmod 755 $GIT_SSH
 fi
 
-"$@"
+exec "$@"
