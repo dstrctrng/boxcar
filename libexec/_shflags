@@ -1,4 +1,4 @@
-# $Id$
+# $Id: shflags 133 2009-05-10 18:04:51Z kate.ward@forestent.com $
 # vim:et:ft=sh:sts=2:sw=2
 #
 # Copyright 2008 Kate Ward. All Rights Reserved.
@@ -312,7 +312,7 @@ _flags_define()
 
   if [ ${_flags_return_} -eq ${FLAGS_TRUE} ]; then
     # store flag information
-    eval "FLAGS_${_flags_name_}='${_flags_default_}'"
+    eval "FLAGS_${_flags_name_}=\"\${OVERRIDE_${_flags_name_}:-${_flags_default_}}\""
     eval "__flags_${_flags_name_}_${__FLAGS_INFO_TYPE}=${_flags_type_}"
     eval "__flags_${_flags_name_}_${__FLAGS_INFO_DEFAULT}=\
 \"${_flags_default_}\""
@@ -749,6 +749,7 @@ _flags_parseGetopt()
     # handle special case help flag
     if [ "${_flags_name_}" = 'help' ]; then
       if [ ${FLAGS_help} -eq ${FLAGS_TRUE} ]; then
+        flags_help
         flags_error='help requested'
         flags_return=${FLAGS_FALSE}
         break
@@ -789,12 +790,12 @@ _flags_parseGetopt()
 # and whose short name was 'x', and the default value was 'false'. This flag
 # could be explicitly set to 'true' with '--update' or by '-x', and it could be
 # explicitly set to 'false' with '--noupdate'.
-DEFINE_boolean() { _flags_define ${__FLAGS_TYPE_BOOLEAN} "$@" || return "$?"; }
+DEFINE_boolean() { _flags_define ${__FLAGS_TYPE_BOOLEAN} "$@"; }
 
 # Other basic flags.
-DEFINE_float()   { _flags_define ${__FLAGS_TYPE_FLOAT} "$@" || return "$?"; }
-DEFINE_integer() { _flags_define ${__FLAGS_TYPE_INTEGER} "$@" || return "$?"; }
-DEFINE_string()  { _flags_define ${__FLAGS_TYPE_STRING} "$@" || return "$?"; }
+DEFINE_float()   { _flags_define ${__FLAGS_TYPE_FLOAT} "$@"; }
+DEFINE_integer() { _flags_define ${__FLAGS_TYPE_INTEGER} "$@"; }
+DEFINE_string()  { _flags_define ${__FLAGS_TYPE_STRING} "$@"; }
 
 # Parse the flags.
 #
@@ -1006,7 +1007,3 @@ flags_reset()
 
   unset flags_name_ flags_type_ flags_strToEval_
 }
-
-# parse stops on first non-option arg
-FLAGS_SUB="$FLAGS_FALSE"
-

@@ -19,7 +19,6 @@ require boxcar
 DEFINE_boolean build "$FLAGS_FALSE" "Also run the :build hooks"
 DEFINE_string provider "aws" "Vagrant provider"
 DEFINE_string distro "raring" "Ubuntu distro"
-DEFINE_boolean cache "$FLAGS_TRUE" "Use the git and http caches"
 
 function run {
   logger_info "running $*"
@@ -137,9 +136,6 @@ function build_train {
 
 # entry point
 function main {
-  if [[ "$FLAGS_cache" = "$FLAGS_FALSE" ]]; then
-    export OVERRIDE_cache="$FLAGS_cache"
-  fi
   build_train "$@"
 }
 

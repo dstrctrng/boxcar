@@ -17,7 +17,7 @@ source "$shome/libexec/_jason"
 require boxcar
 
 DEFINE_string "image" "ubuntu" "Image to use for bootstrap, defaults to public ubuntu image"
-DEFINE_string "script" "${OVERRIDE_script:-"$(BUNDLE_GEMFILE=$shome/Gemfile bundle show vagrant-shell)/libexec/shell-docker"}" "Shell script for vagrant-shell"
+DEFINE_string "script" "$(BUNDLE_GEMFILE=$shome/Gemfile bundle show vagrant-shell)/libexec/shell-docker" "Shell script for vagrant-shell"
 DEFINE_string "run_args" "/usr/sbin/sshd -D" "Run arguments for vagrant-shell run-instance"
 
 function until_vagrant {
@@ -59,8 +59,8 @@ function conf_vagrant {
       "box": "${nm_box}",
       "release_dir": "$FLAGS_release_dir",
       "ssh_username": "$FLAGS_ssh_username",
-      "shell_script": "${OVERRIDE_script:-${FLAGS_script}}",
-      "shell_args": "${OVERRIDE_run_args:-${FLAGS_run_args}}"
+      "shell_script": "${FLAGS_script}",
+      "shell_args": "${FLAGS_run_args}"
     }
   }
 EOF
