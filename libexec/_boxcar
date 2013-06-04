@@ -61,7 +61,7 @@ function configure_remote_git_cache {
   local tmp_git_env="$(mktemp -t XXXXXXXXX)"
   printf "export GIT_USER=%s\n" "$LOGNAME" >> "$tmp_git_env"
   printf "export GIT_PORT=%s\n" "55555" >> "$tmp_git_env"
-  printf "export GIT_REPO=%s\n" "$shome/git-cache" >> "$tmp_git_env"
+  printf "export GIT_REPO=%s\n" "$BOXCAR/git-cache" >> "$tmp_git_env"
   rsync -e "ssh -F $pth_ssh_config" $tmp_git_env default:.git-env
   rsync -e "ssh -F $pth_ssh_config" $shome/libexec/context-git-cache default:.context-git-cache
   rm -f $tmp_git_env
