@@ -23,12 +23,12 @@ function remote_rvm {
 function remote_build {
   remote_rvm
   make binary
-  set +f; mv *.bz2 ~/; set -f
+  (set +f; mv *.bz2 ~/)
 }
 
 function remote_install {
-  set +f; mv ~/*.bz2 .; set -f
   remote_rvm
+  (set +f; mv ~/*.bz2 .)
   make install
   rm -rf ~/boxcar-rvm ~/build-rvm ~/.git-env
 }
@@ -68,7 +68,7 @@ function main {
       continue_image_hook "$@"
       ;;
     install)
-      set +f; rsync -ia -e "ssh -F '$pth_ssh_config'" $FLAGS_cachedir/ree*bz2 $FLAGS_cachedir/ruby*bz2 default:; set -f
+      (set +f; rsync -ia -e "ssh -F '$pth_ssh_config'" $FLAGS_cachedir/ree*bz2 $FLAGS_cachedir/ruby*bz2 default:)
       standard_hook "$bootstrap" "$@"
       ;;
     *)
