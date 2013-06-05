@@ -6,6 +6,8 @@ else
   : ${BOXCAR:="$(unset CDPATH; cd -P -- "$(dirname -- "${BASH_SOURCE}")/.." && pwd -P)"}
 fi
 
+: ${BOXCAR_GHOME:="$(unset CDPATH; cd -P -- "$(dirname -- "${BASH_SOURCE}")/.." && pwd -P)"}
+
 export BOXCAR
 
 PATH="$PATH:$(unset CDPATH; cd -P -- "$(dirname -- "${BASH_SOURCE}")/.." && pwd -P)/libexec"
@@ -64,7 +66,7 @@ function configure_remote_git_cache {
   printf "export GIT_PORT=%s\n" "55555" >> "$tmp_git_env"
   printf "export GIT_REPO=%s\n" "$BOXCAR/git-cache" >> "$tmp_git_env"
   rsync -e "ssh -F $pth_ssh_config" $tmp_git_env default:.git-env
-  rsync -e "ssh -F $pth_ssh_config" $shome/libexec/with-git-cache $shome/libexec/with-http-cache default:
+  rsync -e "ssh -F $pth_ssh_config" $BOXCAR_GHOME/libexec/with-git-cache $BOXCAR_GHOME/libexec/with-http-cache default:
   rm -f $tmp_git_env
 }
 function adjust_build_phase {
