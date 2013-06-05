@@ -1,0 +1,36 @@
+#!/bin/bash
+
+#/ NAME
+#/     vagrant rsync - rsync with vagrant ssh-config
+#/
+#/ SYNOPSIS
+#/     vagrant rsync ARGS_TO_RSYNC
+
+# figure out the project root under which bin, lib live
+shome="$(unset CDPATH; cd -P -- "$(dirname -- "$BASH_SOURCE")/.." && pwd -P)"
+
+# load a jason bourne library
+source "$shome/libexec/_jason"
+
+# entry point
+function main {
+  local tmp_config="$(mktemp -d -t XXXXXX)"
+  local d='$'
+
+  $shome/libexec/vagrant ssh-config > $tmp_config/ssh_config
+
+  local cmd_ssh="$(which ssh)"
+
+  cat > $tmp_config/ssh <<EOF
+#!/bin/bash
+exec $cmd_ssh -F $tmp_config/ssh_config "${d}@"
+EOF
+  chmod 755 $tmp_config/ssh
+
+  PATH="$tmp_config:$PATH"
+  rsync "$@"
+
+  rm -rf $tmp_config
+}
+
+require sub "$BASH_SOURCE" "$@"
