@@ -17,8 +17,6 @@ source "$shome/libexec/_jason"
 require boxcar
 
 DEFINE_boolean build "$FLAGS_FALSE" "Also run the :build hooks"
-DEFINE_string provider "aws" "Vagrant provider"
-DEFINE_string distro "raring" "Ubuntu distro"
 
 function run {
   logger_info "running $*"
@@ -80,13 +78,13 @@ function build_boxcars {
 }
 
 function build_train {
-  local env_distro="$FLAGS_distro"
+  local env_distro="$FLAGS_release"
   local envsuffix=""
   
   if [[ "$FLAGS_provider" = "aws" ]]; then
     envsuffix="$(ryaml $shome/config/aws.yml environment)"
     if [[ -n "$envsuffix" ]]; then
-      env_distro="${FLAGS_distro}(${envsuffix})"
+      env_distro="${FLAGS_release}(${envsuffix})"
     fi
   fi
 
@@ -96,10 +94,8 @@ function build_train {
   FLAGS_builddir="$BOXCAR/build/${env_distro}-${FLAGS_provider}"
   export OVERRIDE_builddir="$FLAGS_builddir"
 
-  FLAGS_cachedir="$BOXCAR/build/${FLAGS_distro}"
+  FLAGS_cachedir="$BOXCAR/build/${FLAGS_release}"
   export OVERRIDE_cachedir="$FLAGS_cachedir"
-
-  export OVERRIDE_run_args="bash -c 'mkdir -p /var/run/sshd; exec /usr/sbin/sshd -D'"
 
   local train="${env_distro}"
 
@@ -112,22 +108,11 @@ function build_train {
     if [[ "$FLAGS_build" = "$FLAGS_TRUE" ]]; then
       # build rvm ruby binaries
       build_boxcars ${FLAGS_provider} $train rvm:build
-
-      # build docker on raring but not containera
-      if [[ "$FLAGS_distro" = "raring" && "$FLAGS_provider" != "shell" ]]; then
-        # build docker binary and ubuntu recise image
-        build_boxcars ${FLAGS_provider} $train docker:build ${FLAGS_distro}:build
-      fi
-    fi
-
-    # install rvm binaries
-    build_boxcars ${FLAGS_provider} $train rvm 
-    train="$train-rvm"
-    
-    # install docker on raring but not on containers
-    if [[ "$FLAGS_distro" = "raring" && "$FLAGS_provider" != "shell" ]]; then
-      build_boxcars ${FLAGS_provider} $train docker ${FLAGS_distro}
-      train="$train-docker-${FLAGS_distro}"
+      train="$train-rvm(build)"
+    else
+      # install rvm binaries
+      build_boxcars ${FLAGS_provider} $train rvm 
+      train="$train-rvm"
     fi
   else
     build_boxcars "${FLAGS_provider}" "$@"
@@ -136,9 +121,15 @@ function build_train {
 
 # entry point
 function main {
+  export OVERRIDE_boxname="${FLAGS_boxname}"
+  export OVERRIDE_release="${FLAGS_release}"
+  export OVERRIDE_release_dir="${FLAGS_release_dir}"
+  export OVERRIDE_ssh_username="${FLAGS_ssh_username}"
+  export OVERRIDE_provider="${FLAGS_provider}"
   build_train "$@"
 }
 
 require sub "$BASH_SOURCE" "$@"
+
 
 
