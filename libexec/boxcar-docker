@@ -45,7 +45,7 @@ function remote_install {
   sudo ln -nfsv /services/docker /etc/service/docker
 
   # cleanup
-  rm -rf ~/build-boxcar-docker
+  rm -rf ~/boxcar-docker
 }
 
 if [[ "$#" = 0 ]]; then

@@ -30,7 +30,7 @@ function remote_install {
   set +f; mv ~/*.bz2 .; set -f
   remote_rvm
   make install
-  rm -rf ~/build-boxcar-rvm ~/build-rvm ~/.git-env
+  rm -rf ~/boxcar-rvm ~/build-rvm ~/.git-env
 }
 
 if [[ "$#" = 0 ]]; then
@@ -60,8 +60,6 @@ bootstrap="$BASH_SOURCE"
 # entry point
 function main {
   local pth_ssh_config="$1"
-
-  configure_remote_git_cache "$pth_ssh_config"
 
   case "${BUILD_IMAGE_PHASE:-}" in
     build)

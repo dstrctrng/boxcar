@@ -61,7 +61,7 @@ function remote_install {
   cat ${nm_distro}.tar.bz2 | docker import - ${nm_distro}
   sudo rm -f ${nm_distro}.tar.bz2
 
-  rm -f ~/build-boxcar-${nm_distro}
+  rm -f ~/boxcar-${nm_distro}
 }
 
 if [[ "$#" = 0 ]]; then

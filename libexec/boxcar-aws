@@ -11,7 +11,7 @@ function remote_install {
 
   cd
 
-  rm -f ~/build-boxcar-aws  ~/build-boxcar-aws.root
+  rm -f ~/boxcar-aws  ~/boxcar-aws.root
 }
 
 if [[ "$#" = 0 ]]; then

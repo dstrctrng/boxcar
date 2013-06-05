@@ -40,7 +40,7 @@ function remote_install {
   # avahi for .local names
   aptitude install -y avahi-daemon avahi-utils
 
-  rm -f ~/build-boxcar-virtualbox ~/build-boxcar-virtualbox.root
+  rm -f ~/boxcar-virtualbox ~/boxcar-virtualbox.root
 }
 
 if [[ "$#" = 0 ]]; then

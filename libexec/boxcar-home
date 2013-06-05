@@ -7,22 +7,26 @@
 #/     seed-rvm.sh ssh_config rubies...
 
 function remote_install {
-  set -exfu
+  set -exfu; cd
 
-  cd
+  local apt_install="sudo env DEBIAN_FRONTEND=noninteractive aptitude -y install"
 
-  rm -f ~/build-boxcar-shell ~/build-boxcar-shell.root
+  sudo aptitude update
+  $apt_install htop libfuse-dev unzip
+
+  git clone git@github.com:destructuring/home 
+  mv home/.git .
+  rm -rf home
+  git reset --hard
+  make
+  vim -E -c ':source .vimrc' -c :quit meh || true
+
+  rm -f ~/boxcar-home ~/.git-env
 }
 
 if [[ "$#" = 0 ]]; then
-  if [[ "$UID" = 0 ]]; then
-    remote_install
-    exit $?
-  else
-    rsync -ia "$0" "$0.root"
-    sudo "$0.root"
-    exit $?
-  fi
+  remote_install
+  exit $?
 fi
 
 # figure out the project root under which bin, lib live
@@ -36,8 +40,9 @@ bootstrap="$BASH_SOURCE"
 
 # entry point
 function main {
-  local pth_ssh_config="$1"; shift
-  standard_hook "$bootstrap" "$pth_ssh_config" "$@"
+  local pth_ssh_config="$1"
+
+  standard_hook "$bootstrap" "$@"
 }
 
 require sub "$BASH_SOURCE" "$@"

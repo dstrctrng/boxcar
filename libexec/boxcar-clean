@@ -78,7 +78,7 @@ EOF
   rm -fv /lib/udev/rules.d/75-persistent-net-generator.rules
   rm -rfv /dev/.udev/ /var/lib/dhcp3/*
 
-  rm -rf ~/build-boxcar-clean ~/build-boxcar-clean.root
+  rm -rf ~/boxcar-clean ~/boxcar-clean.root
 }
 
 if [[ "$#" = 0 ]]; then
@@ -104,8 +104,6 @@ bootstrap="$BASH_SOURCE"
 # entry point
 function main {
   local pth_ssh_config="$1"
-
-  configure_remote_git_cache "$pth_ssh_config"
 
   standard_hook "$bootstrap" "$@"
 }

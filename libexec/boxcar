@@ -20,6 +20,12 @@ function main {
     exit 1
   fi
 
+  export OVERRIDE_boxname="${FLAGS_boxname}"
+  export OVERRIDE_release="${FLAGS_release}"
+  export OVERRIDE_release_dir="${FLAGS_release_dir}"
+  export OVERRIDE_ssh_username="${FLAGS_ssh_username}"
+  export OVERRIDE_provider="${FLAGS_provider}"
+
   start_image_hook "$@"
 }
 
