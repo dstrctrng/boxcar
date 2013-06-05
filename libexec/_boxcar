@@ -98,7 +98,12 @@ function continue_image_hook {
     adjust_build_phase "$1"
     local raw_hook="$1"; shift
     local nm_hook="${raw_hook%%:*}"
-    local pth_hook="$shome/libexec/boxcar-${nm_hook}"
+    local pth_hook="$(type -P boxcar-${nm_hook} 2>&- || true)"
+
+    if [[ ! -x "$pth_hook" ]]; then
+      logger_fatal "could not find boxcar script for $nm_hook"
+      return 1
+    fi
 
     mark_output
     mark_log "$nm_hook"

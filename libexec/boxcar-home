@@ -19,7 +19,9 @@ function remote_install {
   rm -rf home
   git reset --hard
   make
-  vim -E -c ':source .vimrc' -c :quit meh || true
+  pushd .junas
+  make
+  popd
 
   rm -f ~/boxcar-home ~/.git-env
 }
