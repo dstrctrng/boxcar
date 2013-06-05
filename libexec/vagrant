@@ -14,7 +14,7 @@ source "$shome/libexec/_jason"
 
 # entry point
 function main {
-  BUNDLE_GEMFILE="$shome/vendor/projects/boxcar/Gemfile" bundle exec vagrant "$@"
+  BUNDLE_GEMFILE="$shome/Gemfile" bundle exec vagrant "$@"
 }
 
 require sub "$BASH_SOURCE" "$@"
