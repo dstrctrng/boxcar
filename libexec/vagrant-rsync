@@ -33,4 +33,4 @@ EOF
   rm -rf $tmp_config
 }
 
-require sub "$BASH_SOURCE" "$@"
+main "$@"
