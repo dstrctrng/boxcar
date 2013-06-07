@@ -87,7 +87,7 @@ if [[ "$#" = 0 ]]; then
     exit $?
   else
     rsync -ia "$0" "$0.root"
-    sudo "$0.root"
+    sudo env http_proxy=$http_proxy https_proxy=$https_proxy "$0.root"
     exit $?
   fi
 fi
