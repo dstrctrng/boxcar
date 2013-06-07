@@ -31,7 +31,9 @@ function remote_install {
               x11-xkb-utils xfonts-encodings xserver-common chef \
               virtualbox-guest-{dkms,utils,x11}
 
-  wget -nv http://download.virtualbox.org/virtualbox/${ver_vbox}/VBoxGuestAdditions_${ver_vbox}.iso -O ~/VBoxGuestAdditions_${ver_vbox}.iso
+  # TODO cant cache this redirect with squid
+  # wget -nv http://download.virtualbox.org/virtualbox/${ver_vbox}/VBoxGuestAdditions_${ver_vbox}.iso -O ~/VBoxGuestAdditions_${ver_vbox}.iso
+  wget -nv http://dlc.sun.com.edgesuite.net/virtualbox/${ver_vbox}/VBoxGuestAdditions_${ver_vbox}.iso -O ~/VBoxGuestAdditions_${ver_vbox}.iso
   mount -o loop ~/VBoxGuestAdditions_${ver_vbox}.iso /mnt
   sh /mnt/VBoxLinuxAdditions.run || true
   umount /mnt
