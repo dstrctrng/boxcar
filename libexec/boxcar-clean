@@ -62,11 +62,11 @@ EOF
 
   # enable ubuntu user for vagrant boxes
   if id -a vagrant; then
-    sudo mkdir -p ~ubuntu/.ssh
-    sudo chmod 700  ~ubuntu/.ssh
-    sudo cp ~/.ssh/authorized_keys ~ubuntu/.ssh/
-    sudo chmod 600  ~ubuntu/.ssh/authorized_keys
-    sudo chown -R ubuntu:ubuntu  ~ubuntu
+    mkdir -p ~ubuntu/.ssh
+    chmod 700  ~ubuntu/.ssh
+    cp ~/.ssh/authorized_keys ~ubuntu/.ssh/
+    chmod 600  ~ubuntu/.ssh/authorized_keys
+    chown -R ubuntu:ubuntu  ~ubuntu
   fi
 
   # package cleanup
@@ -87,7 +87,7 @@ if [[ "$#" = 0 ]]; then
     exit $?
   else
     rsync -ia "$0" "$0.root"
-    sudo env http_proxy=$http_proxy https_proxy=$https_proxy "$0.root"
+    sudo -E "$0.root"
     exit $?
   fi
 fi
