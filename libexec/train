@@ -17,6 +17,7 @@ source "$shome/libexec/_jason"
 require boxcar
 
 DEFINE_boolean build "$FLAGS_FALSE" "Also run the :build hooks"
+DEFINE_boolean base "$FLAGS_FALSE" "Build the basic boxcars"
 
 function run {
   logger_info "running $*"
@@ -87,7 +88,7 @@ function build_train {
 
   local train="${FLAGS_release}"
 
-  if [[ "$#" = 0 ]]; then
+  if [[ "$FLAGS_base" = "$FLAGS_TRUE" ]]; then
     # take a vendor image, make a clean version with provider specifics
     build_boxcars $train             clean
     build_boxcars "$train-clean(pre)" ${FLAGS_provider}
@@ -102,8 +103,10 @@ function build_train {
       build_boxcars $train rvm 
       train="$train-rvm"
     fi
-  else
-    build_boxcars "$@"
+  fi
+  
+  if [[ "$#" > 0 ]]; then
+    build_boxcars "$train" "$@"
   fi
 }
 
