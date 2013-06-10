@@ -98,11 +98,13 @@ function build_train {
       # build rvm ruby binaries
       build_boxcars $train rvm:build
       train="$train-rvm(build)"
-    else
-      # install rvm binaries
-      build_boxcars $train rvm 
-      train="$train-rvm"
     fi
+
+    # install rvm binaries
+    build_boxcars $train rvm 
+    train="$train-rvm"
+  else
+    trains="$1"; shift
   fi
   
   if [[ "$#" > 0 ]]; then
