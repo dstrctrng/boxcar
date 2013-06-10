@@ -60,7 +60,6 @@ function build_vagrant {
 }
 
 function configure_remote_git_cache {
-  local pth_ssh_config="$1"; shift
   local tmp_git_env="$(mktemp -t XXXXXXXXX)"
   printf "export GIT_USER=%s\n" "$LOGNAME" >> "$tmp_git_env"
   printf "export GIT_PORT=%s\n" "55555" >> "$tmp_git_env"
@@ -71,10 +70,15 @@ function configure_remote_git_cache {
 }
 
 function configure_remote_bootstrap {
-  local pth_ssh_config="$1"; shift
   local pth_bootstrap="$1"; shift
 
   rsync -ia -e "ssh -F '$pth_ssh_config'" "$pth_bootstrap" default:
+}
+
+function configure_remote_aptitude {
+  local pth_bootstrap="$1"; shift
+
+  echo 'Acquire::http { Proxy "http://127.0.0.1:55556"; };' | ssh -F "$pth_ssh_config" default sudo tee /etc/apt/apt.conf.d/01proxy 
 }
 
 function adjust_build_phase {
@@ -126,12 +130,13 @@ function custom_hook {
   local pth_ssh_config="$1"; shift
   local nm_bootstrap="$(basename "$pth_bootstrap")"
 
-  configure_remote_bootstrap "$pth_ssh_config" "$pth_bootstrap"
-  configure_remote_git_cache "$pth_ssh_config"
+  configure_remote_bootstrap "$pth_bootstrap"
+  configure_remote_git_cache
+  configure_remote_aptitude
 
   ssh -F "$pth_ssh_config" -R 55555:127.0.0.1:22 -R 55556:127.0.0.1:3128 -A default "env BUILD_IMAGE_PHASE=$BUILD_IMAGE_PHASE ./with-http-cache ./with-git-cache ./$nm_bootstrap"
 
-  ssh -F "$pth_ssh_config" default sudo rm -vf "./$nm_bootstrap" "./$nm_bootstrap" "./$nm_bootstrap.root" ./with-http-cache ./with-git-cache
+  ssh -F "$pth_ssh_config" default sudo rm -vf "./$nm_bootstrap" "./$nm_bootstrap" "./$nm_bootstrap.root" /etc/apt/apt.conf.d/01proxy ./with-http-cache ./with-git-cache
 }
 
 function standard_hook {
