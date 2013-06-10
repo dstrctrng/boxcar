@@ -46,6 +46,7 @@ function refresh {
     --ssh_username "$ssh_username" \
     "$@" 2>&1 | tee $FLAGS_builddir/$nm_output.log
   if [[ "$PIPESTATUS" != 0 ]]; then
+    logger_fatal "train start failed with pipe status $PIPESTATUS"
     return "$PIPESTATUS"
   fi
   vagrant box add $nm_output $FLAGS_builddir/$nm_output.box
@@ -73,6 +74,10 @@ function build_boxcars {
     fi
 
     refresh $input $output $raw_hook
+    if [[ "$PIPESTATUS" != 0 ]]; then
+      logger_fatal "refresh failed with pipe status $PIPESTATUS"
+      return "$PIPESTATUS"
+    fi
   done
 }
 
@@ -86,24 +91,30 @@ function build_train {
   FLAGS_cachedir="$BOXCAR/build/${FLAGS_release}"
   export OVERRIDE_cachedir="$FLAGS_cachedir"
 
+  # boxcar raring
   local train="${FLAGS_release}"
 
   if [[ "$FLAGS_base" = "$FLAGS_TRUE" ]]; then
-    # take a vendor image, make a clean version with provider specifics
-    build_boxcars $train             clean
+    # boxcar raring -> raring-clean(pre)
+    build_boxcars $train clean
+
+    # boxcar raring-clean(pre) -> raring-clean
     build_boxcars "$train-clean(pre)" ${FLAGS_provider}
     train="$train-clean"
 
     if [[ "$FLAGS_build" = "$FLAGS_TRUE" ]]; then
       # build rvm ruby binaries
+      # boxcar raring-clean -> raring-clean->rvm(build)
       build_boxcars $train rvm:build
       train="$train-rvm(build)"
     fi
 
     # install rvm binaries
+    # boxcar raring-clean -> raring-clean-rvm
     build_boxcars $train rvm 
     train="$train-rvm"
   else
+    # boxcar $1
     trains="$1"; shift
   fi
   

@@ -9,9 +9,9 @@
 function remote_install {
   set -exfu; cd
 
-  local apt_install="sudo env DEBIAN_FRONTEND=noninteractive aptitude -y install"
+  local apt_install="sudo -E env DEBIAN_FRONTEND=noninteractive aptitude -y install"
 
-  sudo aptitude update
+  sudo -E aptitude update
   $apt_install htop libfuse-dev unzip
 
   git clone git@github.com:destructuring/home 
