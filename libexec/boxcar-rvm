@@ -69,13 +69,13 @@ function main {
 
   case "${BUILD_IMAGE_PHASE:-}" in
     build)
-      (set +f; rsync -ia -e "ssh -F '$pth_ssh_config'" $FLAGS_cachedir/rvm default:)
+      (set +f; rsync -ia -e "ssh -F '$pth_ssh_config'" $FLAGS_cachedir/rvm/. default:rvm/)
       custom_hook "$bootstrap" "$@"
       rsync -ia -e "ssh -F '$pth_ssh_config'" default:*.bz2 $FLAGS_cachedir/
       continue_image_hook "$@"
       ;;
     install)
-      (set +f; rsync -ia -e "ssh -F '$pth_ssh_config'" $FLAGS_cachedir/rvm default:)
+      (set +f; rsync -ia -e "ssh -F '$pth_ssh_config'" $FLAGS_cachedir/rvm/. default:rvm/)
       (set +f; rsync -ia -e "ssh -F '$pth_ssh_config'" $FLAGS_cachedir/ree*bz2 $FLAGS_cachedir/ruby*bz2 default:)
       standard_hook "$bootstrap" "$@"
       ;;
