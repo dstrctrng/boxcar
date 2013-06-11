@@ -36,7 +36,7 @@ function remote_install {
   rm -rf ~/rvm
   (set +f; mv ~/*.bz2 .)
   make install
-  rm -rf ~/boxcar-rvm ~/build-rvm ~/.git-env
+  rm -rf ~/build-rvm
 }
 
 if [[ "$#" = 0 ]]; then

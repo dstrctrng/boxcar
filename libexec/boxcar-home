@@ -22,8 +22,6 @@ function remote_install {
   pushd .junas
   make
   popd
-
-  rm -f ~/boxcar-home ~/.git-env
 }
 
 if [[ "$#" = 0 ]]; then

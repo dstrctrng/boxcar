@@ -43,9 +43,6 @@ function remote_install {
   sudo bash -c 'echo -e "#!/bin/bash\n\nexec 2>&1\nexec svlogd -tt ." > /services/docker/log/run'
   sudo chmod 755 /services/docker/run /services/docker/log/run
   sudo ln -nfsv /services/docker /etc/service/docker
-
-  # cleanup
-  rm -rf ~/boxcar-docker
 }
 
 if [[ "$#" = 0 ]]; then
