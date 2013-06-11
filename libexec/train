@@ -106,7 +106,6 @@ function build_train {
       # build rvm ruby binaries
       # boxcar raring-clean -> raring-clean->rvm(build)
       build_boxcars $train rvm:build
-      train="$train-rvm(build)"
     fi
 
     # install rvm binaries
