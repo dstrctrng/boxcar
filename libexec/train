@@ -114,11 +114,11 @@ function build_train {
     train="$train-rvm"
   else
     # boxcar $1
-    trains="$1"; shift
+    train="$1"; shift
   fi
   
   if [[ "$#" > 0 ]]; then
-    build_boxcars "$train" "$@"
+    echo build_boxcars "$train" "$@"
   fi
 }
 
