@@ -118,7 +118,7 @@ function build_train {
   fi
   
   if [[ "$#" > 0 ]]; then
-    echo build_boxcars "$train" "$@"
+    build_boxcars "$train" "$@"
   fi
 }
 
