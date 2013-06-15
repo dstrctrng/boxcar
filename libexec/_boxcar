@@ -140,7 +140,7 @@ function custom_hook {
   logger_info "finished $nm_bootstrap"
 
   ssh -F "$pth_ssh_config" default sudo rm -vf "./$nm_bootstrap" "./$nm_bootstrap" "./$nm_bootstrap.root" /etc/apt/apt.conf.d/01proxy ./with-http-cache ./with-git-cache ./.git-env
-  ssh -F "$pth_ssh_config" default 'atrm $(at -l | awk '{print $1}')'
+  ssh -F "$pth_ssh_config" default 'at -l | cut -d" " -f1 | xargs atrm'
 }
 
 function standard_hook {
