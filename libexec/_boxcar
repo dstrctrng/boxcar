@@ -104,21 +104,24 @@ function start_image_hook {
 function continue_image_hook {
   local pth_ssh_config="$1"; shift
 
-  if [[ "$#" != 0 ]]; then
-    adjust_build_phase "$1"
-    local raw_hook="$1"; shift
-    local nm_hook="${raw_hook%%:*}"
-    local pth_hook="$(type -P boxcar-${nm_hook} 2>&- || true)"
-
-    if [[ ! -x "$pth_hook" ]]; then
-      logger_fatal "could not find boxcar script for $nm_hook"
-      return 1
-    fi
-
-    mark_output
-    mark_log "$nm_hook"
-    exec $pth_hook "$pth_ssh_config" "$@"
+  if [[ "$#" = 0 ]]; then
+    return 0
   fi
+
+  logger_info "continuining with $@"
+  adjust_build_phase "$1"
+  local raw_hook="$1"; shift
+  local nm_hook="${raw_hook%%:*}"
+  local pth_hook="$(type -P boxcar-${nm_hook} 2>&- || true)"
+
+  if [[ ! -x "$pth_hook" ]]; then
+    logger_fatal "could not find boxcar script for $nm_hook"
+    return 1
+  fi
+
+  mark_output
+  mark_log "$nm_hook"
+  exec $pth_hook "$pth_ssh_config" "$@"
 }
 
 function custom_hook {
@@ -130,7 +133,9 @@ function custom_hook {
   configure_remote_git_cache
   configure_remote_aptitude
 
+  logger_info "starting $nm_bootstrap"
   ssh -F "$pth_ssh_config" -R 55555:127.0.0.1:22 -R 55556:127.0.0.1:3128 -A default "env BUILD_IMAGE_PHASE=$BUILD_IMAGE_PHASE ./with-http-cache ./with-git-cache ./$nm_bootstrap"
+  logger_info "finished $nm_bootstrap"
 
   ssh -F "$pth_ssh_config" default sudo rm -vf "./$nm_bootstrap" "./$nm_bootstrap" "./$nm_bootstrap.root" /etc/apt/apt.conf.d/01proxy ./with-http-cache ./with-git-cache ./.git-env
 }

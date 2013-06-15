@@ -45,8 +45,8 @@ function refresh {
     --output $FLAGS_builddir/$nm_output.box \
     --ssh_username "$ssh_username" \
     "$@" 2>&1 | tee $FLAGS_builddir/$nm_output.log
-  if [[ "$PIPESTATUS" != 0 ]]; then
-    logger_fatal "train start failed with pipe status $PIPESTATUS"
+  if [[ "$PIPESTATUS" != 0 && "$PIPESTATUS" != "0" ]]; then
+    logger_fatal "train start failed with pipe status /$PIPESTATUS/"
     return "$PIPESTATUS"
   fi
   vagrant box add $nm_output $FLAGS_builddir/$nm_output.box
