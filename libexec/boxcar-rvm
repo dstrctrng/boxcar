@@ -15,7 +15,7 @@ function remote_rvm {
   # minimum to build chef, chefspec, foodcritic, minitest-chef-handler, nokogiri, rvm
   sudo -E aptitude update
   $apt_install build-essential libxml2-dev libxslt-dev zlib1g-dev libssl-dev libreadline-dev libyaml-dev
-  $apt_install libsqlite3-dev sqlite3 autoconf libgdbm-dev libncurses5-dev automake libtool bison pkg-config libffi-dev
+  $apt_install gawk libsqlite3-dev sqlite3 autoconf libgdbm-dev libncurses5-dev automake libtool bison pkg-config libffi-dev
 
   git clone git@github.com:destructuring/build-rvm
   cd build-rvm
