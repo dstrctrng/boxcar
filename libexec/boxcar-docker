@@ -29,22 +29,23 @@ function container_build {
 
   $apt_install debootstrap
   mkdir image
-  sudo debootstrap --arch amd64 \
+  sudo -E debootstrap --arch amd64 \
                   --include=language-pack-en,aptitude,wget,curl,git,rsync,make,openssh-server \
                   ${nm_distro} image http://archive.ubuntu.com/ubuntu/
 
   printf "%s\n%s\n" "#!/bin/bash" "exit 101" | sudo tee image/usr/sbin/policy-rc.d
   sudo chmod 0755 image/usr/sbin/policy-rc.d
 
-  sudo chroot image apt-get install -y minimal^ server^ standard^
+  sudo rsync -ia /etc/apt/apt.conf.d/01proxy image/etc/apt/apt.conf.d/01proxy
+
+  sudo -E chroot image apt-get install -y minimal^ server^ standard^
 
   cat /etc/apt/sources.list \
     | DISTRO="${nm_distro}" perl -ne 'if (m{^deb}) { s{(\S+\s+\S+)\s+(\S+)}{$beg=$1; $distro=$2; $distro =~ s{\w+}{$ENV{'DISTRO'}}; "$beg $distro"}e; print; }' | sudo tee image/etc/apt/sources.list > /dev/null
-  sudo rsync -ia /etc/apt/apt.conf.d/01proxy image/etc/apt/apt.conf.d/01proxy
 
-  sudo chroot image aptitude update
-  sudo chroot image aptitude dist-upgrade -y
-  sudo chroot image aptitude safe-upgrade -y
+  sudo -E chroot image aptitude update
+  sudo -E chroot image aptitude dist-upgrade -y
+  sudo -E chroot image aptitude safe-upgrade -y
 
   # don't upgrade kernel hereafter
   sudo chroot image aptitude hold linux-{,{headers,image}-}{generic,server,virtual}
@@ -62,7 +63,7 @@ function container_build {
   sudo chroot image chown -R ubuntu:ubuntu /home/ubuntu
 
   # cleanup
-  sudp rm -f image/etc/apt/apt.conf.d/01proxy
+  sudo rm -f image/etc/apt/apt.conf.d/01proxy
 
   # docker image
   sudo tar cfpj ${nm_distro}.tar.bz2 -C image .
