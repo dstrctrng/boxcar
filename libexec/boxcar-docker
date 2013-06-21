@@ -18,8 +18,14 @@ function remote_install {
 
   docker_install
 
-  cat ${BUILD_IMAGE_PHASE}.tar.bz2 | docker import - ${BUILD_IMAGE_PHASE}
-  sudo rm -f ${BUILD_IMAGE_PHASE}.tar.bz2
+  local tar_container
+  for tar_container in $(set +f; ls -d docker-*.tar.bz2); do
+    local nm_container="$(basename $tar_container .tar.bz2)"
+    nm_container="${nm_container##docker-}"
+    cat $tar_container | docker import - $nm_container
+  done
+
+  (set +f; rm -f docker-*.tar.bz2)
 }
 
 function container_build {
@@ -66,7 +72,7 @@ function container_build {
   sudo rm -f image/etc/apt/apt.conf.d/01proxy
 
   # docker image
-  sudo tar cfpj ${nm_distro}.tar.bz2 -C image .
+  sudo tar cfpj docker-${nm_distro}.tar.bz2 -C image .
 }
 
 function docker_install {
@@ -107,13 +113,13 @@ function main {
 
   case "${BUILD_IMAGE_PHASE:-}" in
     install)
-      rsync -ia -e "ssh -F '$pth_ssh_config'" $FLAGS_cachedir/${BUILD_IMAGE_PHASE}.tar.bz2 default:
+      (set +f; rsync -ia -e "ssh -F '$pth_ssh_config'" $FLAGS_cachedir/docker-*.tar.bz2 default:)
       standard_hook "$bootstrap" "$@"
       ;;
     *)
       rsync -ia -e "ssh -F '$pth_ssh_config'" $shome/config/vagrant.pub default:
       custom_hook "$bootstrap" "$@"
-      rsync -ia -e "ssh -F '$pth_ssh_config'" default:${BUILD_IMAGE_PHASE}.tar.bz2 $FLAGS_cachedir/
+      rsync -ia -e "ssh -F '$pth_ssh_config'" default:docker-${BUILD_IMAGE_PHASE}.tar.bz2 $FLAGS_cachedir/
       continue_image_hook "$@"
       ;;
   esac
