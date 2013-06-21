@@ -6,10 +6,66 @@
 #/ SYNOPSIS
 #/     seed-rvm.sh ssh_config rubies...
 
+function remote_build {
+  set -exfu; cd
+
+  docker_install
+  container_build "$BUILD_IMAGE_PHASE"
+}
+
 function remote_install {
   set -exfu; cd
 
   docker_install
+
+  cat ${BUILD_IMAGE_PHASE}.tar.bz2 | docker import - ${BUILD_IMAGE_PHASE}
+  sudo rm -f ${BUILD_IMAGE_PHASE}.tar.bz2
+}
+
+function container_build {
+  local nm_distro="$1"; shift
+
+  local apt_install="sudo env DEBIAN_FRONTEND=noninteractive aptitude -y install"
+
+  $apt_install debootstrap
+  mkdir image
+  sudo debootstrap --arch amd64 \
+                  --include=language-pack-en,aptitude,wget,curl,git,rsync,make,openssh-server \
+                  ${nm_distro} image http://archive.ubuntu.com/ubuntu/
+
+  printf "%s\n%s\n" "#!/bin/bash" "exit 101" | sudo tee image/usr/sbin/policy-rc.d
+  sudo chmod 0755 image/usr/sbin/policy-rc.d
+
+  sudo chroot image apt-get install -y minimal^ server^ standard^
+
+  cat /etc/apt/sources.list \
+    | DISTRO="${nm_distro}" perl -ne 'if (m{^deb}) { s{(\S+\s+\S+)\s+(\S+)}{$beg=$1; $distro=$2; $distro =~ s{\w+}{$ENV{'DISTRO'}}; "$beg $distro"}e; print; }' | sudo tee image/etc/apt/sources.list > /dev/null
+  sudo rsync -ia /etc/apt/apt.conf.d/01proxy image/etc/apt/apt.conf.d/01proxy
+
+  sudo chroot image aptitude update
+  sudo chroot image aptitude dist-upgrade -y
+  sudo chroot image aptitude safe-upgrade -y
+
+  # don't upgrade kernel hereafter
+  sudo chroot image aptitude hold linux-{,{headers,image}-}{generic,server,virtual}
+
+  # create ubuntu user
+  sudo chroot image groupadd -g 1000 ubuntu
+  sudo chroot image useradd -g ubuntu -u 1000 -m ubuntu
+  printf "%s\n" "ubuntu ALL=(ALL) NOPASSWD:ALL" | sudo tee image/etc/sudoers.d/90-cloud-init-users > /dev/null
+
+  # allow vagrant ssh using insecure key
+  sudo mkdir -p image/home/ubuntu/.ssh
+  sudo chmod 700 image/home/ubuntu/.ssh
+  cat ~/vagrant.pub | sudo tee image/home/ubuntu/.ssh/authorized_keys
+  sudo chmod 600 image/home/ubuntu/.ssh/authorized_keys
+  sudo chroot image chown -R ubuntu:ubuntu /home/ubuntu
+
+  # cleanup
+  sudp rm -f image/etc/apt/apt.conf.d/01proxy
+
+  # docker image
+  sudo tar cfpj ${nm_distro}.tar.bz2 -C image .
 }
 
 function docker_install {
@@ -22,9 +78,18 @@ function docker_install {
 }
 
 if [[ "$#" = 0 ]]; then
-  remote_install
-  exit $?
+  case "${BUILD_IMAGE_PHASE:-}" in
+    install)
+      remote_install
+      exit $?
+      ;;
+    *)
+      remote_build
+      exit $?
+      ;;
+  esac
 fi
+
 
 # figure out the project root under which bin, lib live
 shome="$(unset CDPATH; cd -P -- "$(dirname -- "$BASH_SOURCE")/.." && pwd -P)"
@@ -37,7 +102,20 @@ bootstrap="$BASH_SOURCE"
 
 # entry point
 function main {
-  standard_hook "$bootstrap" "$@"
+  local pth_ssh_config="$1"
+
+  case "${BUILD_IMAGE_PHASE:-}" in
+    install)
+      rsync -ia -e "ssh -F '$pth_ssh_config'" $FLAGS_cachedir/${BUILD_IMAGE_PHASE}.tar.bz2 default:
+      standard_hook "$bootstrap" "$@"
+      ;;
+    *)
+      rsync -ia -e "ssh -F '$pth_ssh_config'" $shome/config/vagrant.pub default:
+      custom_hook "$bootstrap" "$@"
+      rsync -ia -e "ssh -F '$pth_ssh_config'" default:${BUILD_IMAGE_PHASE}.tar.bz2 $FLAGS_cachedir/
+      continue_image_hook "$@"
+      ;;
+  esac
 }
 
 require sub "$BASH_SOURCE" "$@"
