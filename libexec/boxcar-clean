@@ -21,7 +21,10 @@ function remote_install {
   source /etc/lsb-release
   if [[ "$DISTRIB_CODENAME" = "precise" ]]; then
     aptitude install -y linux-{generic,tools}-lts-raring
-    aptitude hold linux-{generic,tools}-lts-raring
+    aptitude hold -y linux-{generic,tools}-lts-raring
+  else
+    aptitude install -y linux-image-extra-{generic,server,virtual}
+    aptitude hold -y linux-image-extra-{generic,server,virtual}
   fi
 
   # don't upgrade kernel hereafter
