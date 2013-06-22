@@ -44,6 +44,8 @@ function container_build {
 
   sudo rsync -ia /etc/apt/apt.conf.d/01proxy image/etc/apt/apt.conf.d/01proxy
 
+  echo 'APT::Install-Recommends "0";' | sudo tee image/etc/apt/apt.conf.d/00DisableInstallRecommends
+
   sudo -E chroot image apt-get install -y minimal^ server^ standard^
 
   cat /etc/apt/sources.list \

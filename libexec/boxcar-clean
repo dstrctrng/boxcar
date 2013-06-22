@@ -13,6 +13,8 @@ function remote_install {
 
   export DEBIAN_FRONTEND="noninteractive"
 
+  echo 'APT::Install-Recommends "0";' | tee /etc/apt/apt.conf.d/00DisableInstallRecommends
+
   # update everything
   aptitude update
   aptitude -y dist-upgrade
