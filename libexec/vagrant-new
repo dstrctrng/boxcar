@@ -18,7 +18,11 @@ function main {
   local nm_box="$1"; shift
   local nm_provider="$1"; shift
 
-  mkdir -p $nm_vagrant
+  if [[ ! -d $nm_vagrant ]]; then
+    mkdir -p $nm_vagrant
+    echo '*' > $nm_vagrant/.gitignore
+  fi
+
   cd $nm_vagrant
   ln -nfs ../Vagrantfile .
   env box=$nm_box vagrant up --provider $nm_provider
