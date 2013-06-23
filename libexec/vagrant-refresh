@@ -1,0 +1,22 @@
+#!/bin/bash
+
+#/ NAME
+#/     vagrant refresh - vagrant destroy, up, ssh
+#/
+#/ SYNOPSIS
+#/     vagrant refresh [SSH_ARGS]
+
+# figure out the project root under which bin, lib live
+shome="$(unset CDPATH; cd -P -- "$(dirname -- "$BASH_SOURCE")/.." && pwd -P)"
+
+# load a jason bourne library
+source "$shome/libexec/_jason"
+
+# entry point
+function main {
+  vagrant destroy -f || true
+  vagrant up
+  vagrant ssh -- "$@"
+}
+
+main "$@"
