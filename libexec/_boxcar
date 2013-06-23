@@ -139,7 +139,7 @@ function custom_hook {
   ssh -F "$pth_ssh_config" -R 55555:127.0.0.1:22 -R 55556:127.0.0.1:3128 -A default "env BUILD_IMAGE_PHASE=$BUILD_IMAGE_PHASE ./with-http-cache ./with-git-cache ./$nm_bootstrap"
   logger_info "finished $nm_bootstrap"
 
-  ssh -F "$pth_ssh_config" default sudo rm -vf "./$nm_bootstrap" "./$nm_bootstrap" "./$nm_bootstrap.root" /etc/apt/apt.conf.d/01proxy ./with-http-cache ./with-git-cache ./.git-env
+  ssh -F "$pth_ssh_config" default sudo env LANG=C rm -vf "./$nm_bootstrap" "./$nm_bootstrap" "./$nm_bootstrap.root" /etc/apt/apt.conf.d/01proxy ./with-http-cache ./with-git-cache ./.git-env
   ssh -F "$pth_ssh_config" default atrm $(ssh -F "$pth_ssh_config" default atq | awk '{print $1}')
 }
 
