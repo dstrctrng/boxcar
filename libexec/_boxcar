@@ -15,7 +15,7 @@ PATH="$PATH:$(unset CDPATH; cd -P -- "$(dirname -- "${BASH_SOURCE}")/.." && pwd 
 # parse the command-line
 
 DEFINE_string "boxname" "" "Vagrant box name"
-DEFINE_string 'release' "" 'Ubuntu release'
+DEFINE_string 'release' "precise" 'Ubuntu release'
 DEFINE_string 'provider' "virtualbox" 'Vagrant provider'
 DEFINE_string "output" "" "Where to bundle the vagrant box"
 DEFINE_string "release_dir" "$BOXCAR/vagrant-$(date +%Y%m%d-%H%M-$$)" "Vagrant instance workarea"
