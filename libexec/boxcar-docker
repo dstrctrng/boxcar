@@ -34,6 +34,7 @@ function container_build {
   local apt_install="sudo env DEBIAN_FRONTEND=noninteractive aptitude -y install"
 
   $apt_install debootstrap
+  rm -rf image
   mkdir image
   sudo -E debootstrap --arch amd64 \
                   --include=language-pack-en,aptitude,wget,curl,git,rsync,make,openssh-server \
@@ -49,14 +50,11 @@ function container_build {
   sudo -E chroot image apt-get install -y minimal^ server^ standard^
 
   cat /etc/apt/sources.list \
-    | DISTRO="${nm_distro}" perl -ne 'if (m{^deb}) { s{(\S+\s+\S+)\s+(\S+)}{$beg=$1; $distro=$2; $distro =~ s{\w+}{$ENV{'DISTRO'}}; "$beg $distro"}e; print; }' | sudo tee image/etc/apt/sources.list > /dev/null
+    | env DISTRO="${nm_distro}" perl -ne 'if (m{^deb}) { s{(\S+\s+\S+)\s+(\S+)}{$beg=$1; $distro=$2; $distro =~ s{\w+}{$ENV{'DISTRO'}}; "$beg $distro"}e; print; }' | sudo tee image/etc/apt/sources.list > /dev/null
 
   sudo -E chroot image aptitude update
   sudo -E chroot image aptitude dist-upgrade -y
   sudo -E chroot image aptitude safe-upgrade -y
-
-  # don't upgrade kernel hereafter
-  sudo chroot image aptitude hold linux-{,{headers,image}-}{generic,server,virtual}
 
   # create ubuntu user
   sudo chroot image groupadd -g 1000 ubuntu
