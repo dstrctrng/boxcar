@@ -18,6 +18,7 @@ require boxcar
 
 DEFINE_boolean build "$FLAGS_FALSE" "Also run the :build hooks"
 DEFINE_boolean clean "$FLAGS_FALSE" "Build the basic clean boxcar"
+DEFINE_string final "" "Box name for the end train"
 
 function run {
   logger_info "running $*"
@@ -58,19 +59,25 @@ function build_boxcars {
   # setup the initial box import
   output="$1"; shift
 
-  # build intermediate hooks
-  for raw_hook in "$@"; do
+  # build each boxcar
+  while [[ "$#" > 0 ]]; do
+    local raw_hook="$1"; shift
+
     adjust_build_phase "$raw_hook"
     nm_hook="${raw_hook%%:*}"
     logger_info "hook: $nm_hook, phase: $BUILD_IMAGE_PHASE"
     input="$output"
 
-    if [[ "$nm_hook" = "clean" ]]; then
-      output="$output-${nm_hook}(pre)"
-    elif [[ "$nm_hook" = "$FLAGS_provider" ]]; then
-      output="${output%-clean*}-clean"
+    if [[ "$#" = 0 && -n "$FLAGS_final" ]]; then
+      output="$FLAGS_final"
     else
-      output="$output-$(echo $raw_hook | perl -pe 's{:(\w+)}{($1)}g')"
+      if [[ "$nm_hook" = "clean" ]]; then
+        output="$output-${nm_hook}(pre)"
+      elif [[ "$nm_hook" = "$FLAGS_provider" ]]; then
+        output="${output%-clean*}-clean"
+      else
+        output="$output-$(echo $raw_hook | perl -pe 's{:(\w+)}{($1)}g')"
+      fi
     fi
 
     refresh $input $output $raw_hook
