@@ -101,17 +101,6 @@ function build_train {
     # boxcar raring-clean(pre) -> raring-clean
     build_boxcars "$train-clean(pre)" ${FLAGS_provider}
     train="$train-clean"
-
-    if [[ "$FLAGS_build" = "$FLAGS_TRUE" ]]; then
-      # build rvm ruby binaries
-      # boxcar raring-clean -> raring-clean->rvm(build)
-      build_boxcars $train rvm:build
-    fi
-
-    # install rvm binaries
-    # boxcar raring-clean -> raring-clean-rvm
-    build_boxcars $train rvm 
-    train="$train-rvm"
   else
     # boxcar $1
     train="${FLAGS_release}-$1"; shift
