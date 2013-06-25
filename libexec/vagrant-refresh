@@ -15,8 +15,8 @@ source "$shome/libexec/_jason"
 # entry point
 function main {
   vagrant destroy -f || true
-  vagrant up
-  vagrant ssh -- "$@"
+  env box="${1:-}" vagrant up
+  vagrant ssh -- -A
 }
 
 main "$@"
