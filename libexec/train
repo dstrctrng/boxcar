@@ -38,7 +38,7 @@ function refresh {
     vagrant box remove $nm_output $FLAGS_provider
   fi
 
-  (cd $FLAGS_builddir/${nm_output}.vagrant 2>&- && { vagrant destroy -f 2>&1 > /dev/null; } ) || true
+  (cd $FLAGS_builddir/${nm_output}.vagrant 2>&- && vagrant destroy -f > /dev/null 2>&-) || true
 
   run $shome/bin/train start \
     --boxname $nm_input \
