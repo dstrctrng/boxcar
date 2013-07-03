@@ -7,3 +7,5 @@ bundler_config "#{shome}/cookbooks"
 require 'chef/handler/json_file'
 report_handlers << Chef::Handler::JsonFile.new(:path => "#{shome}/var/chef/reports")
 exception_handlers << Chef::Handler::JsonFile.new(:path => "#{shome}/var/chef/reports")
+
+Mixlib::Log::Formatter.show_time = false
