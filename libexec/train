@@ -76,7 +76,7 @@ function build_boxcars {
       elif [[ "$nm_hook" = "$FLAGS_provider" ]]; then
         output="${output%-clean*}-clean"
       else
-        output="$output-$(echo $raw_hook | perl -pe 's{:(\w+)}{($1)}g')"
+        output="$output-$(echo $raw_hook | perl -pe 's{:(\S+)}{($1)}g')"
       fi
     fi
 
