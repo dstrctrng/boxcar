@@ -119,7 +119,7 @@ function ryaml {
 }
 
 function random_str {
-  echo "$(date +%s).$$.$RANDOM"
+  echo "$(TZ=UTC date +%s).$$.$RANDOM"
 }
 
 function runmany {

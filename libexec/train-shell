@@ -87,7 +87,7 @@ function bundle_vagrant {
   fi
 
   local base_image="$(basename $FLAGS_output .box | perl -pe 's{:(\w+)}{\($1\)}g')"
-  local tag_image="$(date "+%Y-%m-%d-%H-%M")"
+  local tag_image="$(TZ=UTC date "+%Y-%m-%d-%H-%M")"
   local nm_image="${base_image}_${tag_image}"
   local id_instance="$(cat $FLAGS_release_dir/.vagrant/machines/default/shell/id)"
 

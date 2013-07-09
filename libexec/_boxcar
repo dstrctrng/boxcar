@@ -18,7 +18,7 @@ DEFINE_string "boxname" "" "Vagrant box name"
 DEFINE_string 'release' "precise" 'Ubuntu release'
 DEFINE_string 'provider' "virtualbox" 'Vagrant provider'
 DEFINE_string "output" "" "Where to bundle the vagrant box"
-DEFINE_string "release_dir" "$BOXCAR/vagrant-$(date +%Y%m%d-%H%M-$$)" "Vagrant instance workarea"
+DEFINE_string "release_dir" "$BOXCAR/vagrant-$(TZ=UTC date +%Y%m%d-%H%M-$$)" "Vagrant instance workarea"
 DEFINE_string "ssh_username" "ubuntu" "Vagrant ssh username"
 
 DEFINE_string builddir "$BOXCAR/build" "Build directory"
@@ -133,6 +133,7 @@ function custom_hook {
   configure_remote_git_cache
   configure_remote_aptitude
 
+  ssh -F "$pth_ssh_config" default atrm $(ssh -F "$pth_ssh_config" default atq | awk '{print $1}') || true
   ssh -F "$pth_ssh_config" default 'echo poweroff | at now + 50 minutes'
 
   logger_info "starting $nm_bootstrap"
@@ -140,7 +141,7 @@ function custom_hook {
   logger_info "finished $nm_bootstrap"
 
   ssh -F "$pth_ssh_config" default sudo env LANG=C rm -vf "./$nm_bootstrap" "./$nm_bootstrap" "./$nm_bootstrap.root" /etc/apt/apt.conf.d/01proxy ./with-http-cache ./with-git-cache ./.git-env
-  ssh -F "$pth_ssh_config" default atrm $(ssh -F "$pth_ssh_config" default atq | awk '{print $1}')
+  ssh -F "$pth_ssh_config" default atrm $(ssh -F "$pth_ssh_config" default atq | awk '{print $1}') || true
 }
 
 function standard_hook {
