@@ -34,8 +34,13 @@ function refresh {
     ssh_username="vagrant" # TODO this hack goes away if we make our own veewee builds
   fi
 
-  if vagrant box list | awk -v box="$nm_output" -v virt="$FLAGS_provider" '$1 == box && $2 == "(" virt ")" { counter += 1 } END { exit !counter }'; then
-    vagrant box remove $nm_output $FLAGS_provider
+  local nm_box="$nm_output"
+  if [[ "$nm_output" != "$FLAGS_release" ]]; then
+    nm_box="${FLAGS_release}-${nm_box}"
+  fi
+
+  if vagrant box list | awk -v box="$nm_box" -v virt="$FLAGS_provider" '$1 == box && $2 == "(" virt ")" { counter += 1 } END { exit !counter }'; then
+    vagrant box remove $nm_box $FLAGS_provider
   fi
 
   (cd $FLAGS_builddir/${nm_output}.vagrant 2>&- && vagrant destroy -f > /dev/null 2>&-) || true
@@ -51,10 +56,6 @@ function refresh {
     return "$PIPESTATUS"
   fi
 
-  local nm_box="$nm_output"
-  if [[ "$nm_output" != "$FLAGS_release" ]]; then
-    nm_box="${FLAGS_release}-${nm_box}"
-  fi
   vagrant box add $nm_box $FLAGS_builddir/$nm_output.box
 
   rm -rf $FLAGS_builddir/${nm_output}.vagrant
