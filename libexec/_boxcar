@@ -133,7 +133,7 @@ function custom_hook {
   configure_remote_git_cache
   configure_remote_aptitude
 
-  ssh -F "$pth_ssh_config" default atrm $(ssh -F "$pth_ssh_config" default atq | awk '{print $1}') || true
+  ssh -F "$pth_ssh_config" default atrm $(ssh -F "$pth_ssh_config" default atq | awk '{print $1}') 2>&- > /dev/null || true
   ssh -F "$pth_ssh_config" default 'echo poweroff | at now + 50 minutes'
 
   logger_info "starting $nm_bootstrap"
