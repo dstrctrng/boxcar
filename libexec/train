@@ -50,7 +50,12 @@ function refresh {
     logger_fatal "train start failed with pipe status /$PIPESTATUS/"
     return "$PIPESTATUS"
   fi
-  vagrant box add $nm_output $FLAGS_builddir/$nm_output.box
+
+  local nm_box="$nm_output"
+  if [[ "$nm_output" = "$FLAGS_release" ]]; then
+    nm_box="${FLAGS_release}-${nm_box}"
+  fi
+  vagrant box add $nm_box $FLAGS_builddir/$nm_output.box
 
   rm -rf $FLAGS_builddir/${nm_output}.vagrant
 }
