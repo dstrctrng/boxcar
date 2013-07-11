@@ -52,7 +52,7 @@ function refresh {
   fi
 
   local nm_box="$nm_output"
-  if [[ "$nm_output" = "$FLAGS_release" ]]; then
+  if [[ "$nm_output" != "$FLAGS_release" ]]; then
     nm_box="${FLAGS_release}-${nm_box}"
   fi
   vagrant box add $nm_box $FLAGS_builddir/$nm_output.box
