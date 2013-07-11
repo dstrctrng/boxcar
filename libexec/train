@@ -80,6 +80,8 @@ function build_boxcars {
       fi
     fi
 
+    output="${output#${FLAGS_release}-}"
+
     refresh $input $output $raw_hook
     if [[ "$PIPESTATUS" != 0 ]]; then
       logger_fatal "refresh failed with pipe status $PIPESTATUS"

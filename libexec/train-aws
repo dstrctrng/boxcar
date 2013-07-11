@@ -168,6 +168,12 @@ function bundle_vagrant {
   fi
 
   local nm_ami="$(TZ=UTC date "+$(basename $FLAGS_output .box | perl -pe 's{:(\S+)}{\($1\)}g')_%Y-%m-%d-%H-%M")"
+  if [[ "$(basename $FLAGS_output .box)" = "$FLAGS_release" ]]; then
+    true
+  else
+    nm_ami="${FLAGS_release}-${nm_ami}"
+  fi 
+
   local id_instance="$(cat $FLAGS_release_dir/.vagrant/machines/default/aws/id)"
 
   logger_info "creating image $nm_ami from instance $id_instance"
