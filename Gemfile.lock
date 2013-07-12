@@ -66,11 +66,10 @@ GEM
       mime-types (>= 1.16)
     ruby-hmac (0.4.0)
     systemu (2.5.2)
-    tnargav (1.2.2)
+    tnargav (1.2.3)
       childprocess (~> 0.3.7)
       erubis (~> 2.7.0)
       i18n (~> 0.6.0)
-      json (>= 1.5.1, < 1.8.0)
       log4r (~> 1.1.9)
       net-scp (~> 1.1.0)
       net-ssh (~> 2.6.6)
@@ -89,7 +88,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  tnargav (~> 1.2.2)
+  tnargav (~> 1.2.3)
   tnargav-aws (~> 0.2.2)
   tvd-vagrant
   tvdinner
