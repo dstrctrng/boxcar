@@ -57,7 +57,10 @@ function build_vagrant {
   early_termination
   if [[ "$BUILD_IMAGE_PHASE" = "install" ]]; then
     bundle_vagrant
+  else
+    (cd $FLAGS_release_dir && BUNDLE_GEMFILE="$shome/Gemfile" bundle exec vagrant destroy -f)
   fi
+
   delete_keypair "$nm_keypair"
 }
 
