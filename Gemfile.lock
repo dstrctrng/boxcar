@@ -1,3 +1,8 @@
+PATH
+  remote: /Users/davidnghiem/work/vagrant-shell
+  specs:
+    vagrant-shell (0.2.8)
+
 GEM
   remote: https://rubygems.org/
   specs:
@@ -81,7 +86,6 @@ GEM
       tvd-tvdinner
     tvdinner (0.0.5)
       chef
-    vagrant-shell (0.2.7)
     yajl-ruby (1.1.0)
 
 PLATFORMS
@@ -92,4 +96,4 @@ DEPENDENCIES
   tnargav-aws (~> 0.2.2)
   tvd-vagrant
   tvdinner
-  vagrant-shell
+  vagrant-shell!
