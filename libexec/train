@@ -39,6 +39,13 @@ function refresh {
     nm_box="${FLAGS_release}-${nm_box}"
   fi
 
+  local nm_input_box="${nm_input%%-*}"
+  if [[ "$nm_input_box" != "$FLAGS_release" ]]; then
+    nm_input_box="${FLAGS_release}-${nm_input}"
+  else
+    nm_input_box="$nm_input"
+  fi
+
   if vagrant box list | awk -v box="$nm_box" -v virt="$FLAGS_provider" '$1 == box && $2 == "(" virt ")" { counter += 1 } END { exit !counter }'; then
     vagrant box remove $nm_box $FLAGS_provider
   fi
@@ -46,14 +53,14 @@ function refresh {
   (cd $FLAGS_builddir/${nm_output}.vagrant 2>&- && vagrant destroy -f > /dev/null 2>&-) || true
 
   run $shome/bin/train start \
-    --boxname $nm_input \
+    --boxname $nm_input_box \
     --release_dir $FLAGS_builddir/${nm_output}.vagrant \
     --output $FLAGS_builddir/$nm_output.box \
     --ssh_username "$ssh_username" \
     "$@" 2>&1 | tee $FLAGS_builddir/$nm_output.log
-  if [[ "$PIPESTATUS" != 0 && "$PIPESTATUS" != "0" ]]; then
-    logger_fatal "train start failed with pipe status /$PIPESTATUS/"
-    return "$PIPESTATUS"
+  local err_pipe="$PIPESTATUS"
+  if [[ "$err_pipe" != 0 ]]; then
+    return "$err_pipe"
   fi
 
   vagrant box add $nm_box $FLAGS_builddir/$nm_output.box
@@ -89,10 +96,6 @@ function build_boxcars {
     output="${output#${FLAGS_release}-}"
 
     refresh $input $output $raw_hook
-    if [[ "$PIPESTATUS" != 0 ]]; then
-      logger_fatal "refresh failed with pipe status $PIPESTATUS"
-      return "$PIPESTATUS"
-    fi
   done
 }
 
