@@ -1,5 +1,11 @@
 PATH
-  remote: /Users/davidnghiem/work/vagrant-shell
+  remote: /home/ubuntu/work/tvd-vagrant
+  specs:
+    tvd-vagrant (0.0.17)
+      tvd-tvdinner
+
+PATH
+  remote: /home/ubuntu/work/vagrant-shell
   specs:
     vagrant-shell (0.2.8)
 
@@ -82,8 +88,6 @@ GEM
       fog (~> 1.10.0)
     tvd-tvdinner (0.0.27)
       chef
-    tvd-vagrant (0.0.17)
-      tvd-tvdinner
     tvdinner (0.0.5)
       chef
     yajl-ruby (1.1.0)
@@ -94,6 +98,6 @@ PLATFORMS
 DEPENDENCIES
   tnargav (~> 1.2.3)
   tnargav-aws (~> 0.2.2)
-  tvd-vagrant
+  tvd-vagrant!
   tvdinner
   vagrant-shell!
