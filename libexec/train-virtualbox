@@ -68,10 +68,6 @@ EOF
   rm -f "$tmp_dna"
 }
 
-function build_type {
-  echo "virtualbox"
-}
-
 function build_keypair {
   true
 }

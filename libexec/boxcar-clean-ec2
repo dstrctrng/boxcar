@@ -1,0 +1,41 @@
+#!/bin/bash
+
+#/ NAME
+#/     seed-rvm.sh - copies rvm ruby binaries and runs install-rvm.sh
+#/
+#/ SYNOPSIS
+#/     seed-rvm.sh ssh_config rubies...
+
+function remote_install {
+  set -exfu
+
+  cd
+}
+
+if [[ "$#" = 0 ]]; then
+  if [[ "$UID" = 0 ]]; then
+    remote_install
+    exit $?
+  else
+    rsync -ia "$0" "$0.root"
+    sudo -E "$0.root"
+    exit $?
+  fi
+fi
+
+# figure out the project root under which bin, lib live
+shome="$(unset CDPATH; cd -P -- "$(dirname -- "$BASH_SOURCE")/.." && pwd -P)"
+
+# load a jason bourne library
+source "$shome/libexec/_jason"
+require boxcar
+
+bootstrap="$BASH_SOURCE"
+
+# entry point
+function main {
+  local pth_ssh_config="$1"; shift
+  standard_hook "$bootstrap" "$pth_ssh_config" "$@"
+}
+
+require sub "$BASH_SOURCE" "$@"

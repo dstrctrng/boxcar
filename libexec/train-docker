@@ -16,6 +16,7 @@ shome="$(cd -P -- "$(dirname -- "$BASH_SOURCE")/.." && pwd -P)"
 source "$shome/libexec/_jason"
 require boxcar
 
+DEFINE_string 'vprovider' 'docker' 'Vagrant provider'
 DEFINE_string "image" "ubuntu" "Image to use for bootstrap, defaults to public ubuntu image"
 
 function until_vagrant {
@@ -38,11 +39,11 @@ function until_vagrant {
 }
 
 function instance_status {
-  if [[ ! -f "$FLAGS_release_dir/.vagrant/machines/default/docker/id" ]]; then
+  if [[ ! -f "$FLAGS_release_dir/.vagrant/machines/default/${FLAGS_vprovider}/id" ]]; then
     echo "null"
   fi
 
-  id_instance="$(cat $FLAGS_release_dir/.vagrant/machines/default/docker/id)"
+  id_instance="$(cat $FLAGS_release_dir/.vagrant/machines/default/${FLAGS_vprovider}/id)"
   docker inspect "$id_instance" | grep "Running" | awk '{print $2}' | cut -d, -f1
 }
 
@@ -52,7 +53,7 @@ function conf_vagrant {
   local tmp_dna="$(mktemp -t XXXXXXXXX)"
   cat > "$tmp_dna" <<EOF
   { 
-    "run_list": ["vagrant::docker"], 
+    "run_list": ["vagrant::${FLAGS_vprovider}"], 
     "vagrant": { 
       "box": "${nm_box}",
       "release_dir": "$FLAGS_release_dir",
@@ -84,11 +85,12 @@ function bundle_vagrant {
   fi
 
   local base_image="$(basename $FLAGS_output .box | perl -pe 's{:(\w+)}{\($1\)}g')"
-  local id_instance="$(cat $FLAGS_release_dir/.vagrant/machines/default/docker/id)"
+  local id_instance="$(cat $FLAGS_release_dir/.vagrant/machines/default/${FLAGS_vprovider}/id)"
 
   logger_info "creating image ${FLAGS_release}:${base_image} from instance $id_instance"
 
   docker stop $id_instance
+
   local id_image="$(docker commit $id_instance $FLAGS_release $base_image)"
   if [[ -z "$id_image" ]]; then
     logger_fatal "could not retrieve image id"
@@ -99,13 +101,13 @@ function bundle_vagrant {
   local tmp_metadata="$(mktemp -d -t XXXXXXXXX)"
   cat > "$tmp_metadata/metadata.json" << __EOF
   {
-        "provider": "docker"
+        "provider": "${FLAGS_vprovider}"
   }
 __EOF
   cat > "$tmp_metadata/Vagrantfile" << __EOF
   Vagrant.configure("2") do |config|
-    config.vm.provider :docker do |docker, override|
-      docker.image = "$id_image"
+    config.vm.provider :${FLAGS_vprovider} do |${FLAGS_vprovider}, override|
+      ${FLAGS_vprovider}.image = "$id_image"
       override.vm.synced_folder ".", "/vagrant", :id => "vagrant-root", :disabled => true
     end
   end
@@ -120,9 +122,9 @@ function demo_vagrant {
   local nm_box="$1"; shift
 
   conf_vagrant "$nm_box"
-  (cd $FLAGS_release_dir && BUNDLE_GEMFILE="$shome/Gemfile" bundle exec vagrant up --provider docker)
+  (cd $FLAGS_release_dir && BUNDLE_GEMFILE="$shome/Gemfile" bundle exec vagrant up --provider ${FLAGS_vprovider})
   until_vagrant "true"
-  local id_instance="$(cat $FLAGS_release_dir/.vagrant/machines/default/docker/id)"
+  local id_instance="$(cat $FLAGS_release_dir/.vagrant/machines/default/${FLAGS_vprovider}/id)"
   until_port_open "$(docker inspect $id_instance | awk '$1 ~ /IPAddress/ { split($2,ip,"\""); print ip[2] }')" 22
   demo_in_vagrant "$@"
 }

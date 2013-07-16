@@ -1,13 +1,13 @@
 #!/bin/bash
 
 #/ NAME
-#/     build aws -- builds a boxcar with aws
+#/     build ec2 -- builds a boxcar with ec2 tools
 #/
 #/ SYNOPSIS
-#/   bin/build aws
+#/   bin/build ec2
 #/
 #/ EXAMPLES
-#/     $ bin/build aws
+#/     $ bin/build ec2
 
 # figure out the project root under which bin, lib live
 shome="$(cd -P -- "$(dirname -- "$BASH_SOURCE")/.." && pwd -P)"
@@ -16,18 +16,13 @@ shome="$(cd -P -- "$(dirname -- "$BASH_SOURCE")/.." && pwd -P)"
 source "$shome/libexec/_jason"
 require boxcar
 
+DEFINE_string 'vprovider' 'ec2' 'Vagrant provider'
 DEFINE_string "ami" "" "AMI to use for bootstrap, defaults to latest Ubuntu cloud image"
 DEFINE_string 'region' 'us-east-1' 'AWS region'
 DEFINE_string 'disk' 'ebs' 'AWS disk type'
+DEFINE_string 'ebssize' '40' 'EBS disk size in GB'
 DEFINE_string 'arch' 'amd64' 'AWS arch'
 DEFINE_string 'instype' 'm1.large' "AWS instance type"
-
-function pick_ami {
-	# This selects the most recent release Ubuntu cloud image
-  curl -s http://cloud-images.ubuntu.com/rss/${FLAGS_release}-release.xml | \
-    awk '$1 ~ /^<br>/ { sub(/^<br>/, "", $0); print }' | \
-    awk -v region="$FLAGS_region" -v disk="$FLAGS_disk" -v arch="$FLAGS_arch" '$1 == region && $3 == arch && $4 == disk { ami = $2 } END { print ami }'
-}
 
 function while_ec2 {
   logger_info "while $@"
@@ -94,11 +89,11 @@ function until_ami {
 }
 
 function instance_status {
-  if [[ ! -f "$FLAGS_release_dir/.vagrant/machines/default/aws/id" ]]; then
+  if [[ ! -f "$FLAGS_release_dir/.vagrant/machines/default/${FLAGS_vprovider}/id" ]]; then
     echo "null"
   fi
 
-  id_instance="$(cat $FLAGS_release_dir/.vagrant/machines/default/aws/id)"
+  id_instance="$(cat $FLAGS_release_dir/.vagrant/machines/default/${FLAGS_vprovider}/id)"
   ec2-describe-instances --region "$FLAGS_region" "$id_instance" | awk '$1 == "INSTANCE" { print $4 }'
 }
 
@@ -114,19 +109,17 @@ function conf_vagrant {
   local tmp_dna="$(mktemp -t XXXXXXXXX)"
   cat > "$tmp_dna" <<EOF
   { 
-    "run_list": ["vagrant::aws"], 
+    "run_list": ["vagrant::${FLAGS_vprovider}"], 
     "vagrant": { 
       "box": "${nm_box}",
       "release_dir": "$FLAGS_release_dir",
-      "access_key_id": "$AWS_ACCESS_KEY",
-      "secret_access_key": "$AWS_SECRET_KEY",
-      "keypair_name": "$nm_keypair",
-      "instance_type": "m1.large",
       "ssh_username": "$FLAGS_ssh_username",
+      "shell_args": "${FLAGS_region} $FLAGS_instype $nm_keypair ${FLAGS_ebssize}",
       "ssh_private_key_path": "$pth_private_key_path"
     }
   }
 EOF
+  cat $tmp_dna
   $shome/bin/cook -j "$tmp_dna"
   rm -f "$tmp_dna"
 }
@@ -170,13 +163,13 @@ function bundle_vagrant {
     nm_ami="${FLAGS_release}-${nm_ami}"
   fi 
 
-  local id_instance="$(cat $FLAGS_release_dir/.vagrant/machines/default/aws/id)"
+  local id_instance="$(cat $FLAGS_release_dir/.vagrant/machines/default/${FLAGS_vprovider}/id)"
 
   logger_info "creating image $nm_ami from instance $id_instance"
 
   local id_image="$(ec2-create-image --region "$FLAGS_region" -K $EC2_PRIVATE_KEY -C $EC2_CERT -n $nm_ami $id_instance | awk '$1 == "IMAGE" {print $2}')"
   if [[ -z "$id_image" ]]; then
-    logger_fatal "could not retrieve ami id"
+    logger_fatal "could not retrieve image id"
     return 1
   fi
   until_ami "$id_image" "available"
@@ -185,13 +178,14 @@ function bundle_vagrant {
   local tmp_metadata="$(mktemp -d -t XXXXXXXXX)"
   cat > "$tmp_metadata/metadata.json" << __EOF
   {
-        "provider": "aws"
+        "provider": "${FLAGS_vprovider}"
   }
 __EOF
   cat > "$tmp_metadata/Vagrantfile" << __EOF
   Vagrant.configure("2") do |config|
-    config.vm.provider :aws do |aws|
-      aws.ami = "$id_image"
+    config.vm.provider :${FLAGS_vprovider} do |${FLAGS_vprovider}, override|
+      ${FLAGS_vprovider}.image = "$id_image"
+      override.vm.synced_folder ".", "/vagrant", :id => "vagrant-root", :disabled => true
     end
   end
 __EOF
@@ -205,7 +199,7 @@ function demo_vagrant {
   local nm_box="$1"; shift
 
   conf_vagrant "$nm_box" "$nm_keypair" "$FLAGS_release_dir/.id_rsa"
-  (cd $FLAGS_release_dir && BUNDLE_GEMFILE="$shome/Gemfile" bundle exec vagrant up --provider aws)
+  (cd $FLAGS_release_dir && BUNDLE_GEMFILE="$shome/Gemfile" bundle exec vagrant up --provider ${FLAGS_vprovider})
   demo_in_vagrant "$@"
 }
 
