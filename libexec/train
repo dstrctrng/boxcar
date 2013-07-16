@@ -86,7 +86,7 @@ function build_boxcars {
     else
       if [[ "$nm_hook" = "clean" ]]; then
         output="$output-${nm_hook}(pre)"
-      elif [[ "$nm_hook" = "$FLAGS_provider" ]]; then
+      elif [[ "$nm_hook" = "clean-$FLAGS_provider" ]]; then
         output="${output%-clean*}-clean"
       else
         output="$output-$(echo $raw_hook | perl -pe 's{:(\S+)}{($1)}g')"
