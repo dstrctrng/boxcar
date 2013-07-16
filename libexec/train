@@ -121,7 +121,10 @@ function build_train {
     train="$train-clean"
   else
     # boxcar $1
-    train="${FLAGS_release}-$1"; shift
+    if [[ "$1" != "$FLAGS_release" ]]; then
+      train="${FLAGS_release}-$1"
+    fi
+    shift
   fi
   
   if [[ "$#" > 0 ]]; then

@@ -105,8 +105,8 @@ function bundle_vagrant {
 __EOF
   cat > "$tmp_metadata/Vagrantfile" << __EOF
   Vagrant.configure("2") do |config|
-    config.vm.provider :shell do |shell, override|
-      shell.image = "$id_image"
+    config.vm.provider :docker do |docker, override|
+      docker= "$id_image"
       override.vm.synced_folder ".", "/vagrant", :id => "vagrant-root", :disabled => true
     end
   end
