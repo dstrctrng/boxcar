@@ -117,7 +117,7 @@ function build_train {
     build_boxcars $train clean
 
     # boxcar raring-clean(pre) -> raring-clean
-    build_boxcars "$train-clean(pre)" ${FLAGS_provider}
+    build_boxcars "$train-clean(pre)" clean-${FLAGS_provider}
     train="$train-clean"
   else
     # boxcar $1

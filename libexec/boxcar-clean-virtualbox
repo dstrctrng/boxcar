@@ -1,0 +1,74 @@
+#!/bin/bash
+
+#/ NAME
+#/     seed-rvm.sh - copies rvm ruby binaries and runs install-rvm.sh
+#/
+#/ SYNOPSIS
+#/     seed-rvm.sh ssh_config rubies...
+
+function remote_install {
+  set -exfu; cd
+
+  export DEBIAN_FRONTEND="noninteractive"
+
+  # remove crap from vagrant cloud images to match ec2
+  # rebuild guest additions
+  aptitude purge -y juju puppet graphviz fontconfig libpango1.0-0 libgvc5 \
+              x11-common libxt6 libxmu6 libxaw7 libsm6 libice6 bzr debconf-utils fontconfig \
+              fonts-liberation libcairo2 libcdt4 libcgraph5 \
+              libdatrie1 libgd2-noxpm libgraph4 libgssglue1 libgvc5 libgvpr1 \
+              libnfsidmap2 libpango1.0-0 libpathplan4 libpixman-1-0 \
+              libthai0 libthai-data libtirpc1 libxcb-render0 libxcb-shm0 libxft2 libxpm4 \
+              libxrender1 python-bzrlib ttf-liberation puppet-common \
+              libaugeas0 libfontenc1 libllvm3.0 libxcomposite1 libxdamage1 libxfixes3 \
+              libxfont1 libxkbfile1 libxrandr2 libzookeeper-mt2 puppet-common \
+              python-support python-twisted python-twisted-conch xfonts-base xfonts-utils \
+              xserver-xorg-core libgl1-mesa-dri \
+              x11-xkb-utils xfonts-encodings xserver-common chef \
+              virtualbox-guest-{dkms,utils,x11}
+
+  local ver_vbox="$(cat .vbox_version)"
+  # TODO cant cache this redirect with squid
+  # wget -nv http://download.virtualbox.org/virtualbox/${ver_vbox}/VBoxGuestAdditions_${ver_vbox}.iso -O ~/VBoxGuestAdditions_${ver_vbox}.iso
+  wget -nv http://dlc.sun.com.edgesuite.net/virtualbox/${ver_vbox}/VBoxGuestAdditions_${ver_vbox}.iso -O ~/VBoxGuestAdditions_${ver_vbox}.iso
+  mount -o loop ~/VBoxGuestAdditions_${ver_vbox}.iso /mnt
+  sh /mnt/VBoxLinuxAdditions.run || true
+  umount /mnt
+  rm -f ~/VBoxGuestAdditions_${ver_vbox}.iso
+
+  # avahi for .local names
+  aptitude install -y avahi-daemon avahi-utils
+}
+
+if [[ "$#" = 0 ]]; then
+  if [[ "$UID" = 0 ]]; then
+    remote_install
+    exit $?
+  else
+    rsync -ia "$0" "$0.root"
+    sudo -E "$0.root"
+    exit $?
+  fi
+fi
+
+# figure out the project root under which bin, lib live
+shome="$(unset CDPATH; cd -P -- "$(dirname -- "$BASH_SOURCE")/.." && pwd -P)"
+
+# load a jason bourne library
+source "$shome/libexec/_jason"
+require boxcar
+
+bootstrap="$BASH_SOURCE"
+
+# entry point
+function main {
+  local pth_ssh_config="$1"; shift
+
+  local tmp_version="$(mktemp -t XXXXXXXXX)"
+  VBoxManage --version | cut -dr -f1 > $tmp_version
+  rsync -ia -e "ssh -F '$pth_ssh_config'" $tmp_version default:.vbox_version
+  rm -f $tmp_version
+  standard_hook "$bootstrap" "$pth_ssh_config" "$@"
+}
+
+require sub "$BASH_SOURCE" "$@"

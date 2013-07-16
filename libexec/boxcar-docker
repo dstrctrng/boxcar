@@ -60,6 +60,7 @@ function container_build {
   sudo chroot image groupadd -g 1000 ubuntu
   sudo chroot image useradd -g ubuntu -u 1000 -m ubuntu
   printf "%s\n" "ubuntu ALL=(ALL) NOPASSWD:ALL" | sudo tee image/etc/sudoers.d/90-cloud-init-users > /dev/null
+  sudo chmod 0400 image/etc/sudoers.d/90-cloud-init-users
 
   # allow vagrant ssh using insecure key
   sudo mkdir -p image/home/ubuntu/.ssh
