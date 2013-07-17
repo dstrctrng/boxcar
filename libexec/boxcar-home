@@ -18,7 +18,7 @@ function remote_install {
   mv home/.git .
   rm -rf home
   git reset --hard
-  make
+  /usr/local/rvm/bin/rvm-exec 1.9.3 make
   pushd .junas
   make
   popd
