@@ -25,12 +25,10 @@ function remote_install {
               python-support python-twisted python-twisted-conch xfonts-base xfonts-utils \
               xserver-xorg-core libgl1-mesa-dri \
               x11-xkb-utils xfonts-encodings xserver-common chef \
-              virtualbox-guest-{dkms,utils,x11}
+              virtualbox-guest-{dkms,utils,x11} ruby1.8 rdoc1.8 ri1.8 irb1.8 rubygems1.8 ruby1.8-dev
 
   local ver_vbox="$(cat .vbox_version)"
-  # TODO cant cache this redirect with squid
-  # wget -nv http://download.virtualbox.org/virtualbox/${ver_vbox}/VBoxGuestAdditions_${ver_vbox}.iso -O ~/VBoxGuestAdditions_${ver_vbox}.iso
-  wget -nv http://dlc.sun.com.edgesuite.net/virtualbox/${ver_vbox}/VBoxGuestAdditions_${ver_vbox}.iso -O ~/VBoxGuestAdditions_${ver_vbox}.iso
+  wget -nv http://download.virtualbox.org/virtualbox/${ver_vbox}/VBoxGuestAdditions_${ver_vbox}.iso -O ~/VBoxGuestAdditions_${ver_vbox}.iso
   mount -o loop ~/VBoxGuestAdditions_${ver_vbox}.iso /mnt
   sh /mnt/VBoxLinuxAdditions.run || true
   umount /mnt
