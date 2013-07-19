@@ -19,9 +19,6 @@ function remote_install {
   rm -rf home
   git reset --hard
   /usr/local/rvm/bin/rvm-exec 1.9.3 make
-  pushd .junas
-  make
-  popd
 }
 
 if [[ "$#" = 0 ]]; then
@@ -43,6 +40,7 @@ function main {
   local pth_ssh_config="$1"
 
   standard_hook "$bootstrap" "$@"
+  ssh -F "$pth_ssh_config" -t default ./with-git-cache ./with-http-cache bash -c "cd .junas; make"
 }
 
 require sub "$BASH_SOURCE" "$@"
