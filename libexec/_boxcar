@@ -138,9 +138,8 @@ function custom_hook {
   ssh -F "$pth_ssh_config" default 'echo poweroff | at now + 50 minutes'
 
   logger_info "starting $nm_bootstrap"
-  ssh -F "$pth_ssh_config" -R 55555:127.0.0.1:22 -R 55556:127.0.0.1:3128 -f default sleep 3600 &
-  ssh -F "$pth_ssh_config" -A default "env BUILD_IMAGE_PHASE=$BUILD_IMAGE_PHASE ./with-http-cache ./with-git-cache ./$nm_bootstrap"
-  kill -9 %1
+  ssh -F "$pth_ssh_config" -R 55555:127.0.0.1:22 -R 55556:127.0.0.1:3128 -f default sleep 3600 || true &
+  ssh -v -F "$pth_ssh_config" -A default "env BUILD_IMAGE_PHASE=$BUILD_IMAGE_PHASE ./with-http-cache ./with-git-cache ./$nm_bootstrap"
   logger_info "finished $nm_bootstrap"
 
   ssh -F "$pth_ssh_config" default sudo env LANG=C rm -vf "./$nm_bootstrap" "./$nm_bootstrap" "./$nm_bootstrap.root" /etc/apt/apt.conf.d/01proxy ./with-http-cache ./with-git-cache ./.git-env /var/run/reboot-required.pkgs /var/run/reboot-required
