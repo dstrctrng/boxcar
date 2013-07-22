@@ -63,7 +63,7 @@ GEM
       tvd-tvdinner
     tvdinner (0.0.5)
       chef
-    vagrant-shell (0.2.9)
+    vagrant-shell (0.2.13)
     yajl-ruby (1.1.0)
 
 PLATFORMS
