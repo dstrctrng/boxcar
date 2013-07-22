@@ -81,7 +81,7 @@ function build_boxcars {
     logger_info "hook: $nm_hook, phase: $BUILD_IMAGE_PHASE"
     input="$output"
 
-    if [[ "$#" = 0 && -n "$FLAGS_final" && "$nm_hook" != "clean" && "$nm_hook" != "clean-$FLAGS_provider" ]]; then
+    if [[ "$#" = 0 && -n "$FLAGS_final" ]]; then
       output="$FLAGS_final"
     else
       if [[ "$nm_hook" = "clean" ]]; then
@@ -91,8 +91,9 @@ function build_boxcars {
       else
         output="$output-$(echo $raw_hook | perl -pe 's{:(\S+)}{($1)}g')"
       fi
-      output="${output#${FLAGS_release}-}"
     fi
+
+    output="${output#${FLAGS_release}-}"
 
     refresh $input $output $raw_hook
   done
