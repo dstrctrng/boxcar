@@ -91,7 +91,7 @@ function bundle_vagrant {
 
   docker stop $id_instance
 
-  if [[ "$base_image" = "$FLAGS_final" ]]l then
+  if [[ "$base_image" = "$FLAGS_final" ]]; then
     local id_image="$(docker commit $id_instance $base_image)"
   else
     local id_image="$(docker commit $id_instance $FLAGS_release $base_image)"
