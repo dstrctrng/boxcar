@@ -7,16 +7,16 @@
 #/     seed-rvm.sh ssh_config rubies...
 
 function remote_build {
-  local nm_distro="$1"; shift
+  local nm_release="$1"; shift
 
   set -exfu
 
   docker_install
-  container_build $nm_distro
+  container_build $nm_release
 }
 
 function container_build {
-  local nm_distro="$1"; shift
+  local nm_release="$1"; shift
 
   local apt_install="sudo env DEBIAN_FRONTEND=noninteractive aptitude -y install"
 
@@ -26,7 +26,7 @@ function container_build {
   sudo mkdir image
   sudo -E debootstrap --arch amd64 \
                   --include=language-pack-en,aptitude,wget,curl,git,rsync,make,openssh-server \
-                  ${nm_distro} image http://archive.ubuntu.com/ubuntu/
+                  ${nm_release} image http://archive.ubuntu.com/ubuntu/
 
   printf "%s\n%s\n" "#!/bin/bash" "exit 101" | sudo tee image/usr/sbin/policy-rc.d
   sudo chmod 0755 image/usr/sbin/policy-rc.d
@@ -38,7 +38,7 @@ function container_build {
   sudo -E chroot image apt-get install -y minimal^ server^ standard^
 
   cat /etc/apt/sources.list \
-    | env DISTRO="${nm_distro}" perl -ne 'if (m{^deb}) { s{(\S+\s+\S+)\s+(\S+)}{$beg=$1; $distro=$2; $distro =~ s{\w+}{$ENV{'DISTRO'}}; "$beg $distro"}e; print; }' | sudo tee image/etc/apt/sources.list > /dev/null
+    | env DISTRO="${nm_release}" perl -ne 'if (m{^deb}) { s{(\S+\s+\S+)\s+(\S+)}{$beg=$1; $distro=$2; $distro =~ s{\w+}{$ENV{'DISTRO'}}; "$beg $distro"}e; print; }' | sudo tee image/etc/apt/sources.list > /dev/null
 
   sudo -E chroot image aptitude update
   sudo -E chroot image aptitude dist-upgrade -y
@@ -61,7 +61,7 @@ function container_build {
   sudo umount image/run/shm || true
 
   # docker image
-  sudo tar cfpj - -C image . | docker import - $nm_distro
+  sudo tar cfpj - -C image . | docker import - $nm_release
   sudo rm -rf image
 }
 
@@ -73,4 +73,12 @@ function docker_install {
   $apt_install lxc-docker lxc-templates cgroup-lite libpam-cap libcap2-bin debootstrap
 }
 
-remote_build precise > /dev/null
+function main {
+  local nm_release="$(docker images | awk -vrelease=precise -v tag=latest '$1 == release && $2 == tag { print release }')"
+
+  if [[ -z "$nm_release" ]]; then
+    remote_build "$nm_release" > /dev/null
+  fi
+}
+
+main "$@"

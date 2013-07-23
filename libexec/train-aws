@@ -167,9 +167,7 @@ function bundle_vagrant {
   if [[ "$(basename $FLAGS_output .box)" = "$FLAGS_release" ]]; then
     true
   else
-    if [[ "$(basename $FLAGS_output .box)" != "$FLAGS_final" ]]; then
-      nm_ami="${FLAGS_release}-${nm_ami}"
-    fi
+    nm_ami="${FLAGS_release}-${nm_ami}"
   fi 
 
   local id_instance="$(cat $FLAGS_release_dir/.vagrant/machines/default/aws/id)"
