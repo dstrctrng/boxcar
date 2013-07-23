@@ -90,12 +90,13 @@ function bundle_vagrant {
   logger_info "creating image ${FLAGS_release}:${base_image} from instance $id_instance"
 
   docker stop $id_instance
-
   local id_image="$(docker commit $id_instance $FLAGS_release $base_image)"
   if [[ -z "$id_image" ]]; then
     logger_fatal "could not retrieve image id"
     return 1
   fi
+  docker rm $id_instance
+
   (cd $FLAGS_release_dir && BUNDLE_GEMFILE="$shome/Gemfile" bundle exec vagrant destroy -f)
 
   local tmp_metadata="$(mktemp -d -t XXXXXXXXX)"
