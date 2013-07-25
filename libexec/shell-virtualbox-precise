@@ -1,0 +1,23 @@
+set -x
+
+pth_release="$(pwd)/precise"
+pth_ubuntu="$(pwd)/mnt"
+
+sudo rm -rf "${pth_ubuntu}"
+mkdir -p ${pth_ubuntu}
+tar xvfz "${pth_release}/ubuntu.tar.gz" -C "${pth_ubuntu}"
+
+mkdir -p  ${pth_ubuntu}/preseed
+chmod u+w ${pth_ubuntu}/preseed
+rsync -ia ${pth_release}/preseed.cfg ${pth_ubuntu}/preseed/
+
+chmod u+w ${pth_ubuntu}/isolinux
+rsync -ia ${pth_release}/isolinux.cfg ${pth_ubuntu}/isolinux/
+
+pushd ${pth_ubuntu}
+chmod u+w isolinux/isolinux.bin
+mkisofs \
+  -r -V "ubuntu" \
+  -cache-inodes -J -l -b isolinux/isolinux.bin -c isolinux/boot.cat \
+  -no-emul-boot -boot-load-size 4 -boot-info-table -o "${pth_release}/ubuntu.iso" .
+popd
