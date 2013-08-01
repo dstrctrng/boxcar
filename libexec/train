@@ -106,7 +106,7 @@ function build_train {
   FLAGS_builddir="$BOXCAR/build/${FLAGS_release}-${FLAGS_provider}"
   export OVERRIDE_builddir="$FLAGS_builddir"
 
-  FLAGS_cachedir="$BOXCAR/vault/boxcar/${FLAGS_release}"
+  FLAGS_cachedir="$VAULT/boxcar/${FLAGS_release}"
   export OVERRIDE_cachedir="$FLAGS_cachedir"
 
   # boxcar raring
