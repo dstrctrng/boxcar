@@ -22,7 +22,7 @@ function remote_install {
   for tar_container in $(set +f; ls -d docker-*.tar.bz2); do
     local nm_container="$(basename $tar_container .tar.bz2)"
     nm_container="${nm_container##docker-}"
-    cat $tar_container | docker import - $nm_container
+    cat $tar_container | sudo docker import - $nm_container
   done
 
   (set +f; rm -f docker-*.tar.bz2)
