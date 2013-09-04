@@ -50,11 +50,11 @@ function refresh {
     vagrant box remove $nm_box $FLAGS_provider
   fi
 
-  (cd $FLAGS_builddir/${nm_output}.vagrant 2>&- && vagrant destroy -f > /dev/null 2>&-) || true
+  (cd $FLAGS_builddir/${nm_output} 2>&- && vagrant destroy -f > /dev/null 2>&-) || true
 
   run $shome/bin/train start \
     --boxname $nm_input_box \
-    --release_dir $FLAGS_builddir/${nm_output}.vagrant \
+    --release_dir $FLAGS_builddir/${nm_output} \
     --output $FLAGS_builddir/$nm_output.box \
     --ssh_username "$ssh_username" \
     "$@" 2>&1 | tee $FLAGS_builddir/$nm_output.log
@@ -65,7 +65,7 @@ function refresh {
 
   vagrant box add $nm_box $FLAGS_builddir/$nm_output.box
 
-  rm -rf $FLAGS_builddir/${nm_output}.vagrant
+  rm -rf $FLAGS_builddir/${nm_output}
 }
 
 function build_boxcars {
