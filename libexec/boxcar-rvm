@@ -62,6 +62,7 @@ shome="$(unset CDPATH; cd -P -- "$(dirname -- "$BASH_SOURCE")/.." && pwd -P)"
 # load a jason bourne library
 source "$shome/libexec/_jason"
 require boxcar
+require boxcar_opt
 bootstrap="$BASH_SOURCE"
 
 # entry point
