@@ -41,7 +41,7 @@ function main {
   local pth_ssh_config="$1"
 
   standard_hook "$bootstrap" "$@"
-  ssh -F "$pth_ssh_config" -t default ./with-git-cache ./with-http-cache bash -c "cd .junas; make"
+  ssh -F "$pth_ssh_config" -t default ./.git-sbin/with-git-cache ./.git-sbin/with-http-cache bash -c "cd .junas; make"
 }
 
 require sub "$BASH_SOURCE" "$@"
