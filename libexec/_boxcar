@@ -143,7 +143,7 @@ function custom_hook {
     rsync -ia "$pth_ssh_config" "$save_config"
     echo DEBUG ssh -F "$save_config" -t -A default "\"env BUILD_IMAGE_PHASE=$BUILD_IMAGE_PHASE ./.git-sbin/with-http-cache ./.git-sbin/with-git-cache bash\""
   fi
-  ssh -F "$pth_ssh_config" default pkill sleep || true
+  ssh -F "$pth_ssh_config" default pkill sleep 2>&- || true
 
   ssh -F "$pth_ssh_config" default atrm $(ssh -F "$pth_ssh_config" default atq | awk '{print $1}') || true
   return $failed
