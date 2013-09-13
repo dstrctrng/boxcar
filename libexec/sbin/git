@@ -1,0 +1,15 @@
+#!/bin/bash
+
+function main {
+  local arg=();
+  while [[ "$#" > 0 ]]; do
+    arg[${#arg[@]}]="$(printf '%s' "$1" | sed 's#git://github.com/#git@github.com:#; s#https://github.com/#git@github.com:#')"
+    shift
+  done
+  set -- "${arg[@]}"
+
+  local cmd_git="$(env PATH="${PATH//$(dirname $(which git))/}" bash -c "type -P git")"
+  exec $cmd_git "$@"
+}
+
+main "$@"
