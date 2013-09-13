@@ -55,7 +55,7 @@ function configure_remote_git_cache {
   printf "export GIT_REPO=%s\n" "$VAULT/git-cache" >> "$tmp_git_env"
   ssh -F $pth_ssh_config default mkdir -p .git-sbin
   set +f
-  rsync -e "ssh -F $pth_ssh_config" $BOXCAR_GHOME/libexec/with-git-cache $BOXCAR_GHOME/libexec/with-http-cache $BOXCAR_GHOME/libexec/with-http-cache/sbin/* default:.git-sbin/
+  rsync -e "ssh -F $pth_ssh_config" $BOXCAR_GHOME/libexec/with-git-cache $BOXCAR_GHOME/libexec/with-http-cache $BOXCAR_GHOME/libexec/sbin/* default:.git-sbin/
   set -f
   rsync -e "ssh -F $pth_ssh_config" $tmp_git_env default:.git-env
   rm -f $tmp_git_env
