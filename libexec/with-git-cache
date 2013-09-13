@@ -15,7 +15,7 @@ if [[ -n "${GIT_HOST:-}" ]]; then
   trap "rm -f $GIT_SSH" EXIT
   {
     printf "#!/bin/bash\n"
-    printf "%s\n" 'host="$1"; shift; exec ssh -p ${GIT_PORT:-22} -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no ${GIT_HOST:-$host} "cd ${GIT_REPO:-.}; $*"' 
+    printf "%s\n" 'host="$1"; shift; exec ssh -p ${GIT_PORT:-22} -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no ${GIT_HOST:-$host} "$*"' 
   } > $GIT_SSH
   chmod 755 $GIT_SSH
 fi
