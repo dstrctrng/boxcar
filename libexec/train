@@ -137,6 +137,9 @@ function build_train {
 function main {
   export OVERRIDE_provider="${FLAGS_provider}"
   export OVERRIDE_release="${FLAGS_release}"
+  if [[ -f "${SSH_AGENT_FILE:-}" ]]; then
+    source "${SSH_AGENT_FILE}"
+  fi
   build_train "$@"
 }
 
