@@ -130,16 +130,20 @@ function custom_hook {
 
   logger_info "starting $nm_bootstrap"
   ssh -F "$pth_ssh_config" -R 55555:127.0.0.1:$(cat $PORT_SSHD_FILE) -R 55556:127.0.0.1:$(cat $PORT_PROXY_FILE) -f default sleep 3600 || true &
+  local failed
   if ssh -F "$pth_ssh_config" -A default "env BUILD_IMAGE_PHASE=$BUILD_IMAGE_PHASE ./.git-sbin/with-http-cache ./.git-sbin/with-git-cache ./$nm_bootstrap"; then
+    failed=$?
     logger_info "finished $nm_bootstrap"
   else
+    failed=$?
     logger_info "failed! $nm_bootstrap"
   fi
-  ssh -F "$pth_ssh_config" pkill sleep || true
+  ssh -F "$pth_ssh_config" default pkill sleep || true
 
   ssh -F "$pth_ssh_config" default sudo env LANG=C rm -vf "./$nm_bootstrap" "./$nm_bootstrap" "./$nm_bootstrap.root" ./.git-env /etc/apt/apt.conf.d/01proxy /var/run/reboot-required.pkgs /var/run/reboot-required
   ssh -F "$pth_ssh_config" default sudo env LANG=C rm -vfr "./$nm_bootstrap" "./$nm_bootstrap" "./$nm_bootstrap.root" ./.git-sbin
   ssh -F "$pth_ssh_config" default atrm $(ssh -F "$pth_ssh_config" default atq | awk '{print $1}') || true
+  return $failed
 }
 
 function standard_hook {
