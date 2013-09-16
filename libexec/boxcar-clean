@@ -31,7 +31,7 @@ function remote_install {
   aptitude hold linux-{,{headers,image}-}{generic,server,virtual}
 
   # basic packages
-  aptitude -y install wget curl netcat git rsync make
+  aptitude -y install wget curl netcat git rsync make bsdtar
 
   # language
   aptitude -y install language-pack-en
