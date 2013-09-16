@@ -33,15 +33,15 @@ shome="$(unset CDPATH; cd -P -- "$(dirname -- "$BASH_SOURCE")/.." && pwd -P)"
 
 # load a jason bourne library
 source "$shome/libexec/_jason"
-require br
-
+require boxcar
+require boxcar_opt
 bootstrap="$BASH_SOURCE"
 
 # entry point
 function main {
-  local pth_ssh_config="$1"; shift
+  local pth_ssh_config="$1"
 
-  standard_hook "$bootstrap" "$pth_ssh_config" "$@"
+  standard_hook "$bootstrap" "$@"
 }
 
 require sub "$BASH_SOURCE" "$@"
