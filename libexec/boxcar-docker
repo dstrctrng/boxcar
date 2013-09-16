@@ -17,18 +17,6 @@ function remote_install {
   set -exfu; cd
 
   docker_install
-  container_install
-}
-
-function container_install {
-  local tar_container
-  for tar_container in $(set +f; ls -d docker-*.tar.bz2); do
-    local nm_container="$(basename $tar_container .tar.bz2)"
-    nm_container="${nm_container##docker-}"
-    cat $tar_container | sudo docker import - $nm_container
-  done
-
-  (set +f; rm -f docker-*.tar.bz2)
 }
 
 function container_build {
@@ -118,8 +106,8 @@ function main {
 
   case "${BUILD_IMAGE_PHASE:-}" in
     install)
-      (set +f; rsync -ia -e "ssh -F '$pth_ssh_config'" $FLAGS_cachedir/docker-*.tar.bz2 default:)
       standard_hook "$bootstrap" "$@"
+      cat $FLAGS_cachedir/docker-${BUILD_IMAGE_PHASE}.tar.bz2 | ssh -F $pth_ssh_config sudo docker import - "${BUILD_IMAGE_PHASE}"
       ;;
     *)
       rsync -ia -e "ssh -F '$pth_ssh_config'" $shome/config/vagrant.pub default:
