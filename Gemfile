@@ -1,6 +1,7 @@
 source "https://rubygems.org"
 
-gem "tnargav", "~> 1.2.3"
+gem "tnargav"
+gem "tnargav-aws"
 gem "vagrant-shell"
 
 gem "tvdinner"
