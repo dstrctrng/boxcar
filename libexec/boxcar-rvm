@@ -37,6 +37,7 @@ function remote_install {
   rm -rf ~/rvm
   (set +f; mv ~/*.bz2 .)
   sudo env http_proxy=$http_proxy make install
+  sudo /usr/local/rvm/bin/rvm rvmrc warning ignore allGemfiles
   rm -rf ~/build-rvm
 }
 
