@@ -111,8 +111,6 @@ bootstrap="$BASH_SOURCE"
 
 # entry point
 function main {
-  local pth_ssh_config="$1"
-
   standard_hook "$bootstrap" "$@"
 }
 

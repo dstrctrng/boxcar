@@ -111,9 +111,8 @@ function main {
       ;;
     *)
       rsync -ia -e "ssh -F '$pth_ssh_config'" $shome/config/vagrant.pub default:
-      custom_hook "$bootstrap" "$@"
+      standard_hook "$bootstrap" "$@"
       rsync -ia -e "ssh -F '$pth_ssh_config'" default:docker-${BUILD_IMAGE_PHASE}.tar.bz2 $FLAGS_cachedir/
-      continue_image_hook "$@"
       ;;
   esac
 }
