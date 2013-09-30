@@ -79,6 +79,7 @@ function build_boxcars {
 
     adjust_build_phase "$raw_hook"
     nm_hook="${raw_hook%%:*}"
+    fuglet "$nm_hook"
     logger_info "hook: $nm_hook, phase: $BUILD_IMAGE_PHASE"
     input="$output"
 
