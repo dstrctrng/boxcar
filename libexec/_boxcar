@@ -60,19 +60,22 @@ function build_vagrant {
 }
 
 function configure_remote_git_cache {
+  local username="$1"; shift
+
   local tmp_git_env="$(mktemp -t XXXXXXXXX)"
   printf "export GIT_USER=%s\n" "$LOGNAME" >> "$tmp_git_env"
   printf "export GIT_PORT=%s\n" "55555" >> "$tmp_git_env"
-  ssh -F $pth_ssh_config default mkdir -p .git-sbin
+  ssh -F $pth_ssh_config "$username"default mkdir -p .git-sbin
   set +f
-  rsync -e "ssh -F $pth_ssh_config" $BOXCAR_GHOME/libexec/with-git-cache $BOXCAR_GHOME/libexec/with-http-cache $BOXCAR_GHOME/libexec/sbin/* default:.git-sbin/
+  rsync -e "ssh -F $pth_ssh_config" $BOXCAR_GHOME/libexec/with-git-cache $BOXCAR_GHOME/libexec/with-http-cache $BOXCAR_GHOME/libexec/sbin/* "$username"default:.git-sbin/
   set -f
-  rsync -e "ssh -F $pth_ssh_config" $tmp_git_env default:.git-env
+  rsync -e "ssh -F $pth_ssh_config" $tmp_git_env "$username"default:.git-env
   rm -f $tmp_git_env
 }
 
 function configure_remote_bootstrap {
-  rsync -ia -e "ssh -F '$pth_ssh_config'" "$pth_bootstrap" default:
+  local username="$1"; shift
+  rsync -ia -e "ssh -F '$pth_ssh_config'" "$pth_bootstrap" "$username"default:
 }
 
 function configure_remote_aptitude {
@@ -134,8 +137,8 @@ function custom_hook {
   local username="$1"; shift
   local nm_bootstrap="$(basename "$pth_bootstrap")"
 
-  configure_remote_bootstrap "$pth_bootstrap"
-  configure_remote_git_cache
+  configure_remote_bootstrap "$pth_bootstrap" "$username"
+  configure_remote_git_cache "$username"
   configure_remote_aptitude
 
   ssh -F "$pth_ssh_config" default sudo atrm $(ssh -F "$pth_ssh_config" default sudo atq | awk '{print $1}') 2>&- > /dev/null || true
