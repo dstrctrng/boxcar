@@ -154,7 +154,7 @@ function custom_hook {
   else
     failed=$?
     fuglet "FAILED $nm_bootstrap"
-    logger_fatal"failed! $nm_bootstrap"
+    logger_fatal "failed! $nm_bootstrap"
     local save_config="$(mktemp -t XXXXXX)"
     rsync -ia "$pth_ssh_config" "$save_config"
     echo ssh -F "$save_config" -t -A default "\"env BUILD_IMAGE_PHASE=$BUILD_IMAGE_PHASE ./.git-sbin/with-http-cache ./.git-sbin/with-git-cache bash\""
