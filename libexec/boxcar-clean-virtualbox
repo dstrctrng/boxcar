@@ -57,7 +57,7 @@ bootstrap="$BASH_SOURCE"
 function main {
   local pth_ssh_config="$1"
 
-  VBoxManage --version | cut -dr -f1 | ssh -F $pth_ssh_config default sudo tee .vbox_version
+  VBoxManage --version | cut -dr -f1 | ssh -F $pth_ssh_config default sudo tee \~root/.vbox_version
   standard_root_hook "$bootstrap" "$@"
 }
 
