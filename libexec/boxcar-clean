@@ -96,7 +96,7 @@ bootstrap="$BASH_SOURCE"
 
 # entry point
 function main {
-  local pth_ssh_config="$1"; shift
+  local pth_ssh_config="$1"
   local ssh="ssh -F $pth_ssh_config"
 
   # enable ubuntu user for vagrant boxes
