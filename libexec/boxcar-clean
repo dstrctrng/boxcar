@@ -71,12 +71,13 @@ EOF
 
   # enable ubuntu user for vagrant boxes
   if id -a vagrant; then
-    mkdir -p ~ubuntu/.ssh
-    chmod 700  ~ubuntu/.ssh
-    cp ~/.ssh/authorized_keys ~ubuntu/.ssh/
-    chmod 600  ~ubuntu/.ssh/authorized_keys
-    chown -R ubuntu:ubuntu  ~ubuntu
+    install -o ubuntu -g ubuntu -m 0700 ~ubuntu/.ssh
+    install -o ubuntu -g ubuntu -m 0600  ~vagrant/.ssh/authorized_keys ~ubuntu/.ssh/authorized_keys
   fi
+
+  # permit root access with the same ubuntu keys
+  install -o root -g root -m 0700 ~root/.ssh
+  install -o root -g root -m 0600  ~/.ssh/authorized_keys ~root/.ssh/authorized_keys
 
   # package cleanup
   aptitude clean
