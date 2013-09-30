@@ -101,13 +101,13 @@ function main {
 
   # enable ubuntu user for vagrant boxes
   if $ssh default id -a vagrant 2>&-; then
-    $ssh default sudo install -o ubuntu -g ubuntu -m 0700 -d ~ubuntu/.ssh
-    $ssh default sudo install -o ubuntu -g ubuntu -m 0600 ~vagrant/.ssh/authorized_keys ~ubuntu/.ssh/authorized_keys
+    $ssh default sudo install -o ubuntu -g ubuntu -m 0700 -d \~ubuntu/.ssh
+    $ssh default sudo install -o ubuntu -g ubuntu -m 0600 \~vagrant/.ssh/authorized_keys \~ubuntu/.ssh/authorized_keys
   fi
 
   # permit root access with the same ubuntu keys
-  $ssh default sudo install -o root -g root -m 0700 -d ~root/.ssh
-  $ssh default sudo install -o root -g root -m 0600 ~/.ssh/authorized_keys ~root/.ssh/authorized_keys
+  $ssh default sudo install -o root -g root -m 0700 -d \~root/.ssh
+  $ssh default sudo install -o root -g root -m 0600 \~/.ssh/authorized_keys \~root/.ssh/authorized_keys
 
   standard_root_hook "$bootstrap" "$@"
 }
