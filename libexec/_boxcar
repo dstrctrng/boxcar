@@ -74,7 +74,7 @@ function configure_remote_git_cache {
 }
 
 function configure_root_ssh {
-  ssh -F $pth_ssh_config default env REMOTE='$(uname -n)' perl -pe "s\{localhost\\s*\?.\*\}\{localhost\ \\\$ENV\{\"REMOTE\"\}\}" -i /etc/hosts
+  ssh -F $pth_ssh_config default sudo env REMOTE='$(uname -n)' perl -pe "s\{localhost\\s*\?.\*\}\{localhost\ \\\$ENV\{\"REMOTE\"\}\}" -i /etc/hosts
   ssh -F $pth_ssh_config default sudo install -o root -g root -m 0700 -d \~root/.ssh
   ssh -F $pth_ssh_config default sudo install -o root -g root -m 0600 \~/.ssh/authorized_keys \~root/.ssh/authorized_keys
 }
