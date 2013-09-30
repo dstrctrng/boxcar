@@ -90,14 +90,8 @@ EOF
 }
 
 if [[ "$#" = 0 ]]; then
-  if [[ "$UID" = 0 ]]; then
-    remote_install
-    exit $?
-  else
-    rsync -ia "$0" "$0.root"
-    sudo -E "$0.root"
-    exit $?
-  fi
+  remote_install
+  exit $?
 fi
 
 # figure out the project root under which bin, lib live
@@ -112,7 +106,7 @@ bootstrap="$BASH_SOURCE"
 
 # entry point
 function main {
-  standard_hook "$bootstrap" "$@"
+  standard_root_hook "$bootstrap" "$@"
 }
 
 require sub "$BASH_SOURCE" "$@"
