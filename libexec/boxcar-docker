@@ -60,11 +60,11 @@ function container_build {
   sudo chroot image chown -R ubuntu:ubuntu /home/ubuntu
 
   # pretend upstart services always succeed
-  dpkg-divert --local --rename --add /sbin/initctl
-  ln -s /bin/true /sbin/initctl
+  sudo dpkg-divert --local --rename --add /sbin/initctl
+  sudo ln -s /bin/true /sbin/initctl
 
   # sshd requirements
-  install -d -m 0755 -o root -g root /var/run/sshd
+  sudo install -d -m 0755 -o root -g root /var/run/sshd
 
   # cleanup
   sudo rm -f image/etc/apt/apt.conf.d/01proxy
