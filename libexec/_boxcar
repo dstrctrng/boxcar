@@ -15,7 +15,7 @@ PATH="$PATH:$(unset CDPATH; cd -P -- "$(dirname -- "${BASH_SOURCE}")/.." && pwd 
 function fuglet {
   local pth_figlet="$(which figlet 2>&- || true)"
   if [[ -x "$pth_figlet" ]]; then
-    "$pth_figlet" -w 1 "$@" | perl -pe 's{^([ ]+)(\S)}{"_" x length($1) . $2}ge'
+    "$pth_figlet" -w 425  "$@" | perl -pe 's{^([ ]+)(\S)}{"_" x length($1) . $2}ge'
   else
     printf "====\n"
     printf "==== %s\n", "$*"
