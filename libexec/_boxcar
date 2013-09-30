@@ -160,7 +160,7 @@ function custom_hook {
     logger_fatal "failed! $nm_bootstrap"
     local save_config="$(mktemp -t XXXXXX)"
     rsync -ia "$pth_ssh_config" "$save_config"
-    echo ssh -F "$save_config" -t -A default "\"env BUILD_IMAGE_PHASE=$BUILD_IMAGE_PHASE ./.git-sbin/with-http-cache ./.git-sbin/with-git-cache bash\""
+    echo ssh -F "$save_config" -t -A "$username"default "\"env BUILD_IMAGE_PHASE=$BUILD_IMAGE_PHASE ./.git-sbin/with-http-cache ./.git-sbin/with-git-cache bash\""
   fi
   ssh -F "$pth_ssh_config" default pkill sleep 2>&- || true
 
