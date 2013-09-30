@@ -70,14 +70,14 @@ bitbucket.org ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAubiN81eDcafrgMeLzaFPsw2kNvEcqT
 EOF
 
   # enable ubuntu user for vagrant boxes
-  if id -a vagrant; then
-    install -o ubuntu -g ubuntu -m 0700 ~ubuntu/.ssh
-    install -o ubuntu -g ubuntu -m 0600  ~vagrant/.ssh/authorized_keys ~ubuntu/.ssh/authorized_keys
+  if id -a vagrant 2>&-; then
+    install -o ubuntu -g ubuntu -m 0700 -d ~ubuntu/.ssh
+    install -o ubuntu -g ubuntu -m 0600 ~vagrant/.ssh/authorized_keys ~ubuntu/.ssh/authorized_keys
   fi
 
   # permit root access with the same ubuntu keys
   install -o root -g root -m 0700 ~root/.ssh
-  install -o root -g root -m 0600  ~/.ssh/authorized_keys ~root/.ssh/authorized_keys
+  install -o root -g root -m 0600 -d ~/.ssh/authorized_keys ~root/.ssh/authorized_keys
 
   # package cleanup
   aptitude clean
