@@ -76,8 +76,8 @@ EOF
   fi
 
   # permit root access with the same ubuntu keys
-  install -o root -g root -m 0700 ~root/.ssh
-  install -o root -g root -m 0600 -d ~/.ssh/authorized_keys ~root/.ssh/authorized_keys
+  install -o root -g root -m 0700 -d ~root/.ssh
+  install -o root -g root -m 0600 ~/.ssh/authorized_keys ~root/.ssh/authorized_keys
 
   # package cleanup
   aptitude clean
