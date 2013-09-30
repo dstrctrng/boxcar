@@ -55,13 +55,10 @@ bootstrap="$BASH_SOURCE"
 
 # entry point
 function main {
-  local pth_ssh_config="$1"; shift
+  local pth_ssh_config="$1"
 
-  local tmp_version="$(mktemp -t XXXXXXXXX)"
-  VBoxManage --version | cut -dr -f1 > $tmp_version
-  rsync -ia -e "ssh -F '$pth_ssh_config'" $tmp_version default:.vbox_version
-  rm -f $tmp_version
-  standard_root_hook "$bootstrap" "$pth_ssh_config" "$@"
+  VBoxManage --version | cut -dr -f1 | ssh -F $pth_ssh_config root@defalt tee .vbox_version
+  standard_root_hook "$bootstrap" "$@"
 }
 
 require sub "$BASH_SOURCE" "$@"
