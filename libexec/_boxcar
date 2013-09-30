@@ -94,6 +94,7 @@ function start_image_hook {
   local pth_hook="$shome/libexec/boxcar-run"
 
   if [[ "$#" = 0 ]]; then
+    fuglet NOT FOUND
     logger_fatal "missing build boxcar script arg"
     exit 1
   fi
@@ -117,6 +118,7 @@ function continue_image_hook {
   local pth_hook="$(type -P boxcar-${nm_hook} 2>&- || true)"
 
   if [[ ! -x "$pth_hook" ]]; then
+    fuglet NOT FOUND
     logger_fatal "could not find boxcar script for $nm_hook"
     return 1
   fi
@@ -139,6 +141,7 @@ function custom_hook {
   ssh -F "$pth_ssh_config" default sudo atrm $(ssh -F "$pth_ssh_config" default sudo atq | awk '{print $1}') 2>&- > /dev/null || true
   ssh -F "$pth_ssh_config" default 'echo poweroff | sudo at now + 50 minutes'
 
+  fuglet "$nm_bootstrap"
   logger_info "starting $nm_bootstrap"
   ssh -F "$pth_ssh_config" -R 55555:127.0.0.1:$(cat $PORT_SSHD_FILE) -R 55556:127.0.0.1:$(cat $PORT_PROXY_FILE) -f default sleep 3600 || true &
   local failed
@@ -150,10 +153,11 @@ function custom_hook {
     ssh -F "$pth_ssh_config" ${username}default env LANG=C rm -vfr ./.git-sbin
   else
     failed=$?
-    logger_info "failed! $nm_bootstrap"
+    fuglet FAILED
+    logger_fatal"failed! $nm_bootstrap"
     local save_config="$(mktemp -t XXXXXX)"
     rsync -ia "$pth_ssh_config" "$save_config"
-    echo DEBUG ssh -F "$save_config" -t -A default "\"env BUILD_IMAGE_PHASE=$BUILD_IMAGE_PHASE ./.git-sbin/with-http-cache ./.git-sbin/with-git-cache bash\""
+    echo ssh -F "$save_config" -t -A default "\"env BUILD_IMAGE_PHASE=$BUILD_IMAGE_PHASE ./.git-sbin/with-http-cache ./.git-sbin/with-git-cache bash\""
   fi
   ssh -F "$pth_ssh_config" default pkill sleep 2>&- || true
 
