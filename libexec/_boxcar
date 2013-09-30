@@ -74,10 +74,9 @@ function configure_remote_git_cache {
 }
 
 function configure_remote_bootstrap {
+  local pth_bootstrap="$1"; shift
   local username="$1"; shift
   rsync -ia -e "ssh -F '$pth_ssh_config'" "$pth_bootstrap" "$username"default:
-  ssh -F $pth_ssh_config default ls -ld
-  ssh -F $pth_ssh_config "$username"default ls -ld
 }
 
 function configure_remote_aptitude {
