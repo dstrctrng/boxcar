@@ -73,6 +73,11 @@ function configure_remote_git_cache {
   rm -f $tmp_git_env
 }
 
+function configure_root_ssh {
+  ssh -F $pth_ssh_config default sudo install -o root -g root -m 0700 -d \~root/.ssh
+  ssh -F $pth_ssh_config default sudo install -o root -g root -m 0600 \~/.ssh/authorized_keys \~root/.ssh/authorized_keys
+}
+
 function configure_remote_bootstrap {
   local pth_bootstrap="$1"; shift
   local username="$1"; shift
@@ -138,6 +143,7 @@ function custom_hook {
   local username="$1"; shift
   local nm_bootstrap="$(basename "$pth_bootstrap")"
 
+  configure_root_ssh
   configure_remote_bootstrap "$pth_bootstrap" "$username"
   configure_remote_git_cache "$username"
   configure_remote_aptitude
