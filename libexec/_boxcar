@@ -76,6 +76,8 @@ function configure_remote_git_cache {
 function configure_remote_bootstrap {
   local username="$1"; shift
   rsync -ia -e "ssh -F '$pth_ssh_config'" "$pth_bootstrap" "$username"default:
+  ssh -F $pth_ssh_config default ls -ld
+  ssh -F $pth_ssh_config "$username"default ls -ld
 }
 
 function configure_remote_aptitude {
@@ -154,6 +156,7 @@ function custom_hook {
     ssh -F "$pth_ssh_config" default sudo env LANG=C rm -vf /etc/apt/apt.conf.d/01proxy /var/run/reboot-required.pkgs /var/run/reboot-required
     ssh -F "$pth_ssh_config" ${username}default env LANG=C rm -vf  "./$nm_bootstrap" ./.git-env
     ssh -F "$pth_ssh_config" ${username}default env LANG=C rm -vfr ./.git-sbin
+    ssh -F "$pth_ssh_config" default pkill sleep 2>&- || true
   else
     failed=$?
     fuglet "FAILED $nm_bootstrap"
@@ -162,7 +165,6 @@ function custom_hook {
     rsync -ia "$pth_ssh_config" "$save_config"
     echo ssh -F "$save_config" -t -A "$username"default "\"env BUILD_IMAGE_PHASE=$BUILD_IMAGE_PHASE ./.git-sbin/with-http-cache ./.git-sbin/with-git-cache bash\""
   fi
-  ssh -F "$pth_ssh_config" default pkill sleep 2>&- || true
 
   ssh -F "$pth_ssh_config" default sudo atrm $(ssh -F "$pth_ssh_config" default sudo atq | awk '{print $1}') || true
   return $failed
