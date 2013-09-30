@@ -69,16 +69,6 @@ github.com ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAq2A7hRGmdnm9tUDbO9IDSwBK6TbQa+PXY
 bitbucket.org ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAubiN81eDcafrgMeLzaFPsw2kNvEcqTKl/VqLat/MaB33pZy0y3rJZtnqwR2qOOvbwKZYKiEO1O6VqNEBxKvJJelCq0dTXWT5pbO2gDXC6h6QDXCaHo6pOHGPUy+YBaGQRGuSusMEASYiWunYN0vCAI8QaXnWMXNMdFP3jHAJH0eDsoiGnLPBlBp4TNm6rYI74nMzgz3B9IikW4WVK+dc8KZJZWYjAuORU3jc1c/NPskD2ASinf8v3xnfXeukU0sJ5N6m5E8VLjObPEO+mN2t/FZTMZLiFqPWc/ALSqnMnnhwrNi2rbfg/rd/IpL8Le3pSBne8+seeFVBoGqzHM9yXw==
 EOF
 
-  # enable ubuntu user for vagrant boxes
-  if id -a vagrant 2>&-; then
-    install -o ubuntu -g ubuntu -m 0700 -d ~ubuntu/.ssh
-    install -o ubuntu -g ubuntu -m 0600 ~vagrant/.ssh/authorized_keys ~ubuntu/.ssh/authorized_keys
-  fi
-
-  # permit root access with the same ubuntu keys
-  install -o root -g root -m 0700 -d ~root/.ssh
-  install -o root -g root -m 0600 ~/.ssh/authorized_keys ~root/.ssh/authorized_keys
-
   # package cleanup
   aptitude clean
 
@@ -106,6 +96,19 @@ bootstrap="$BASH_SOURCE"
 
 # entry point
 function main {
+  local pth_ssh_config="$1"; shift
+  local ssh="ssh -F $pth_ssh_config"
+
+  # enable ubuntu user for vagrant boxes
+  if $ssh id -a vagrant 2>&-; then
+    $ssh sudo install -o ubuntu -g ubuntu -m 0700 -d ~ubuntu/.ssh
+    $ssh sudo install -o ubuntu -g ubuntu -m 0600 ~vagrant/.ssh/authorized_keys ~ubuntu/.ssh/authorized_keys
+  fi
+
+  # permit root access with the same ubuntu keys
+  $ssh sudo install -o root -g root -m 0700 -d ~root/.ssh
+  $ssh sudo install -o root -g root -m 0600 ~/.ssh/authorized_keys ~root/.ssh/authorized_keys
+
   standard_root_hook "$bootstrap" "$@"
 }
 
