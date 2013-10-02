@@ -165,7 +165,7 @@ function bundle_vagrant {
   fi
 
   local nm_branch="${FLAGS_branch}"
-  local nm_ami="$(TZ=UTC date "+$(basename $FLAGS_output .box | perl -pe 's{:(\S+)}{\($1\)}g')_${nm_branch}_%Y-%m-%d-%H-%M")"
+  local nm_ami="$(TZ=UTC date "+$(basename $FLAGS_output .box | perl -pe 's{:(\S+)}{\($1\)}g')${BOXCAR_type:+${BOXCAR_type}_}_${nm_branch}_%Y-%m-%d-%H-%M")"
   if [[ "$(basename $FLAGS_output .box)" = "$FLAGS_release" ]]; then
     true
   else
@@ -176,7 +176,7 @@ function bundle_vagrant {
 
   logger_info "creating image $nm_ami from instance $id_instance"
 
-  local id_image="$(ec2-create-image --region "$FLAGS_region" -K $EC2_PRIVATE_KEY -C $EC2_CERT -n $nm_ami $id_instance | awk '$1 == "IMAGE" {print $2}')"
+  local id_image="$(ec2-create-image --region "$FLAGS_region" -K $EC2_PRIVATE_KEY -C $EC2_CERT -n $nm_ami -d "${BOXCAR_description:-}" $id_instance | awk '$1 == "IMAGE" {print $2}')"
   if [[ -z "$id_image" ]]; then
     logger_fatal "could not retrieve ami id"
     return 1
