@@ -164,7 +164,7 @@ function bundle_vagrant {
     return 0
   fi
 
-  local nm_branch="$(echo "${FLAGS_branch}" | perl -pe 's{\W+}{-}g; s{--+}{-}g; s{^-+}{} s{-+$}{}')"
+  local nm_branch="$(echo "${FLAGS_branch}" | perl -pe 's{\W+}{-}g; s{--+}{-}g; s{^-+}{}; s{-+$}{}')"
   local nm_ami="$(TZ=UTC date "+$(basename $FLAGS_output .box | perl -pe 's{:(\S+)}{\($1\)}g')${BOXCAR_type:+${BOXCAR_type}_}_${nm_branch}_%Y-%m-%d-%H-%M")"
   if [[ "$(basename $FLAGS_output .box)" = "$FLAGS_release" ]]; then
     true
