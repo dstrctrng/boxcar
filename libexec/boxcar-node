@@ -9,7 +9,7 @@
 function remote_install {
   set -exfu
 
-  local ver_node="0.10.2"
+  local ver_node="0.10.21"
   local url_node="http://nodejs.org/dist/v${ver_node}/node-v${ver_node}.tar.gz"
 
   local apt_install="sudo env DEBIAN_FRONTEND=noninteractive aptitude -y install"
