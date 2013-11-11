@@ -114,7 +114,7 @@ function main {
   case "${BUILD_IMAGE_PHASE:-}" in
     install)
       standard_hook "$bootstrap" "$@"
-      cat $FLAGS_cachedir/docker-${OVERRIDE_release}.tar | ssh -F $pth_ssh_config default sudo docker import - "${OVERRIDE_release}"
+      bzip2 -dc $FLAGS_cachedir/docker-${OVERRIDE_release}.tar.bz2 | ssh -F $pth_ssh_config default sudo docker import - "${OVERRIDE_release}"
       ;;
     *)
       rsync -ia -e "ssh -F '$pth_ssh_config'" $shome/config/vagrant.pub default:
