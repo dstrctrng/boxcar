@@ -23,18 +23,12 @@ function remote_rvm {
 
 function remote_build {
   remote_rvm
-  mkdir -p vendor/cache/rvm
-  rsync -ia ~/rvm/. vendor/cache/rvm/
-  rm -rf ~/rvm
   make binary
   (set +f; mv *.bz2 ~/)
 }
 
 function remote_install {
   remote_rvm
-  mkdir -p vendor/cache/rvm
-  rsync -ia ~/rvm/. vendor/cache/rvm/
-  rm -rf ~/rvm
   (set +f; mv ~/*.bz2 .)
   sudo env http_proxy=$http_proxy make install
   sudo /usr/local/rvm/bin/rvm rvmrc warning ignore allGemfiles
@@ -72,12 +66,11 @@ function main {
 
   case "${BUILD_IMAGE_PHASE:-}" in
     build)
-      (set +f; rsync -ia -e "ssh -F '$pth_ssh_config'" $FLAGS_cachedir/rvm/. default:rvm/)
       standard_hook "$bootstrap" "$@"
+      mkdir -p "$FLAGS_cachedir"
       rsync -ia -e "ssh -F '$pth_ssh_config'" default:*.bz2 $FLAGS_cachedir/
       ;;
     install)
-      (set +f; rsync -ia -e "ssh -F '$pth_ssh_config'" $FLAGS_cachedir/rvm/. default:rvm/)
       (set +f; rsync -ia -e "ssh -F '$pth_ssh_config'" $FLAGS_cachedir/ree*bz2 $FLAGS_cachedir/ruby*bz2 default:)
       standard_hook "$bootstrap" "$@"
       ;;
