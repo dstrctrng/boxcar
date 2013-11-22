@@ -87,8 +87,8 @@ function bundle_vagrant {
   fi
 
   rm -f "$FLAGS_output"
-  (cd $FLAGS_release_dir && BUNDLE_GEMFILE="$shome/Gemfile" bundle exec vagrant package --output ${FLAGS_output})
-  (cd $FLAGS_release_dir && BUNDLE_GEMFILE="$shome/Gemfile" bundle exec vagrant destroy -f)
+  (cd $FLAGS_release_dir && vagrant package --output ${FLAGS_output})
+  (cd $FLAGS_release_dir && vagrant destroy -f)
 }
 
 function demo_vagrant {
@@ -96,7 +96,7 @@ function demo_vagrant {
   local id_image="$1"; shift
 
   conf_vagrant "$id_image"
-  (cd $FLAGS_release_dir && BUNDLE_GEMFILE="$shome/Gemfile" bundle exec vagrant up --provider virtualbox)
+  (cd $FLAGS_release_dir && vagrant up --provider virtualbox)
   until_vagrant "running"
   until_port_open localhost "$(forwarded_ssh_port)"
   demo_in_vagrant "$@"

@@ -43,7 +43,7 @@ function demo_in_vagrant {
   local pth_custom="${@:$(($#))}"
 
   local tmp_ssh_config="$(mktemp -t XXXXXXXXX)"
-  (cd $FLAGS_release_dir && BUNDLE_GEMFILE="$shome/Gemfile" bundle exec vagrant ssh-config | sed -n '/^Host/,$p' > "$tmp_ssh_config")
+  (cd $FLAGS_release_dir && vagrant ssh-config | sed -n '/^Host/,$p' > "$tmp_ssh_config")
   $pth_custom "$tmp_ssh_config" "${@:1:$(($#-1))}"
   rm -f "$tmp_ssh_config"
 }

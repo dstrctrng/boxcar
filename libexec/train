@@ -31,9 +31,6 @@ function refresh {
   local nm_output="$1"; shift
 
   local ssh_username="ubuntu"
-  if [[ "$FLAGS_provider" = "virtualbox" && "${1%%:*}" = "clean" ]]; then
-    ssh_username="vagrant" # TODO this hack goes away if we make our own veewee builds
-  fi
 
   local nm_box="$nm_output"
   if [[ "$nm_output" != "$FLAGS_release" ]]; then
