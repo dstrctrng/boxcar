@@ -17,7 +17,7 @@ function main {
   local tmp_config="$(mktemp -d -t XXXXXX)"
   local d='$'
 
-  $shome/libexec/vagrant ssh-config | grep -v IdentitiesOnly > $tmp_config/ssh_config
+  vagrant ssh-config | grep -v IdentitiesOnly > $tmp_config/ssh_config
 
   local cmd_ssh="$(which ssh)"
 
