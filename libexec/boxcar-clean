@@ -15,8 +15,15 @@ function remote_install {
 
   # update everything
   aptitude update
+  if [[ "$(ps -o command 1)" != "/sbin/init" ]]; then
+    mv /usr/bin/ischroot /usr/bin/ischroot.x
+    ln -nfs true /usr/bin/ischroot
+  fi
   aptitude -y dist-upgrade
   aptitude -y safe-upgrade
+  if [[ "$(ps -o command 1)" != "/sbin/init" ]]; then
+    mv /usr/bin/ischroot.x /usr/bin/ischroot
+  fi
 
   source /etc/lsb-release
   if [[ "$DISTRIB_CODENAME" = "precise" ]]; then
