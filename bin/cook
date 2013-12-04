@@ -16,7 +16,9 @@ source "$shome/libexec/_jason"
 function main {
   export RELEASE_DIR="$shome"
   export PROJECT_DIR="$shome"
-  bundle exec chef-solo -c $shome/etc/chef/solo.rb "$@"
+
+  unset BUNDLE_BIN_PATH GEM_HOME GEM_PATH _ORIGINAL_GEM_PATH
+  env BUNDLE_GEMFILE="$shome/Gemfile" bundle exec chef-solo -c $shome/etc/chef/solo.rb "$@"
 }
 
 require sub "$BASH_SOURCE" "$@"
