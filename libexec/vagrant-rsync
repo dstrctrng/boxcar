@@ -12,12 +12,14 @@ shome="$(unset CDPATH; cd -P -- "$(dirname -- "$BASH_SOURCE")/.." && pwd -P)"
 # load a jason bourne library
 source "$shome/libexec/_jason"
 
+DEFINE_string "host" "default" "Vagrant hostname"
+
 # entry point
 function main {
   local tmp_config="$(mktemp -d -t XXXXXX)"
   local d='$'
 
-  vagrant ssh-config | grep -v IdentitiesOnly > $tmp_config/ssh_config
+  vagrant ssh-config "$FLAGS_host" | grep -v IdentitiesOnly > $tmp_config/ssh_config
 
   local cmd_ssh="$(which ssh)"
 
@@ -33,4 +35,4 @@ EOF
   rm -rf $tmp_config
 }
 
-main "$@"
+require sub "$BASH_SOURCE" "$@"
