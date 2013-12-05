@@ -96,7 +96,6 @@ function bundle_vagrant {
     logger_fatal "could not retrieve image id"
     return 1
   fi
-  docker rm $id_instance
 
   (cd $FLAGS_release_dir && vagrant destroy -f)
 
