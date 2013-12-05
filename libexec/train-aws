@@ -182,7 +182,7 @@ function bundle_vagrant {
     return 1
   fi
   until_ami "$id_image" "available"
-  (cd $FLAGS_release_dir && BUNDLE_GEMFILE="$shome/Gemfile" bundle exec vagrant destroy -f)
+  (cd $FLAGS_release_dir && vagrant destroy -f)
 
   local tmp_metadata="$(mktemp -d -t XXXXXXXXX)"
   cat > "$tmp_metadata/metadata.json" << __EOF
@@ -207,7 +207,7 @@ function demo_vagrant {
   local nm_box="$1"; shift
 
   conf_vagrant "$nm_box" "$nm_keypair" "$FLAGS_release_dir/.id_rsa"
-  (cd $FLAGS_release_dir && BUNDLE_GEMFILE="$shome/Gemfile" bundle exec vagrant up --provider aws)
+  (cd $FLAGS_release_dir && vagrant up --provider aws)
   demo_in_vagrant "$@"
 }
 

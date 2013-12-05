@@ -98,7 +98,7 @@ function bundle_vagrant {
   fi
   docker rm $id_instance
 
-  (cd $FLAGS_release_dir && BUNDLE_GEMFILE="$shome/Gemfile" bundle exec vagrant destroy -f)
+  (cd $FLAGS_release_dir && vagrant destroy -f)
 
   local tmp_metadata="$(mktemp -d -t XXXXXXXXX)"
   cat > "$tmp_metadata/metadata.json" << __EOF
@@ -124,7 +124,7 @@ function demo_vagrant {
   local nm_box="$1"; shift
 
   conf_vagrant "$nm_box"
-  (cd $FLAGS_release_dir && BUNDLE_GEMFILE="$shome/Gemfile" bundle exec vagrant up --provider ${FLAGS_vprovider})
+  (cd $FLAGS_release_dir && vagrant up --provider ${FLAGS_vprovider})
   until_vagrant "true"
   local id_instance="$(cat $FLAGS_release_dir/.vagrant/machines/default/${FLAGS_vprovider}/id)"
   until_port_open "$(docker inspect $id_instance | awk '$1 ~ /IPAddress/ { split($2,ip,"\""); print ip[2] }')" 22
