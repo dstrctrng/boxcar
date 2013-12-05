@@ -18,7 +18,7 @@ require boxcar
 require boxcar_opt
 
 DEFINE_string "ami" "" "AMI to use for bootstrap, defaults to latest Ubuntu cloud image"
-DEFINE_string 'region' 'us-east-1' 'AWS region'
+DEFINE_string 'region' "${AWS_DEFAULT_REGION:-us-west-1}" 'AWS region'
 DEFINE_string 'disk' 'ebs' 'AWS disk type'
 DEFINE_string 'arch' 'amd64' 'AWS arch'
 DEFINE_string 'instype' 'm1.large' "AWS instance type"
