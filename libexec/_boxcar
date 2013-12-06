@@ -161,8 +161,20 @@ function custom_hook {
   ssh -F "$pth_ssh_config" default 'echo poweroff | sudo at now + 50 minutes'
 
   fuglet "$nm_bootstrap"
+
+  if [[ -n "${cache_loaders}" ]]; then
+    if [[ -f "$PORT_SSHD_FILE" ]]; then
+      logger_info "starting git cache"
+      ssh -F "$pth_ssh_config" -R 55555:127.0.0.1:$(cat $PORT_SSHD_FILE) -f default sleep 3600 || true &
+    fi
+
+    if [[ -f "$PORT_PROXY_FILE" ]]; then
+      logger_info "starting http cache/proxy"
+      ssh -F "$pth_ssh_config" -R 55556:127.0.0.1:$(cat $PORT_PROXY_FILE) -f default sleep 3600 || true &
+    fi
+  fi
+
   logger_info "starting $nm_bootstrap"
-  ssh -F "$pth_ssh_config" -R 55555:127.0.0.1:$(cat $PORT_SSHD_FILE) -R 55556:127.0.0.1:$(cat $PORT_PROXY_FILE) -f default sleep 3600 || true &
   local failed
   if ssh -F "$pth_ssh_config" -A ${username}default "env BUILD_IMAGE_PHASE=$BUILD_IMAGE_PHASE $cache_loaders ./$nm_bootstrap"; then
     failed=$?
