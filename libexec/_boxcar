@@ -189,7 +189,7 @@ function custom_hook {
     logger_fatal "failed! $nm_bootstrap"
     local save_config="$(mktemp -t XXXXXX)"
     rsync -ia "$pth_ssh_config" "$save_config"
-    echo ssh -F "$save_config" -t -A "$username"default "\"env BUILD_IMAGE_PHASE=$BUILD_IMAGE_PHASE $cache_loaders bash\""
+    echo ssh -F "$save_config" -t -A "$username"default "\"env BUILD_IMAGE_PHASE=$BUILD_IMAGE_PHASE bash\""
   fi
 
   ssh -F "$pth_ssh_config" default sudo atrm $(ssh -F "$pth_ssh_config" default sudo atq | awk '{print $1}') || true
