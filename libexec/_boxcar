@@ -17,9 +17,7 @@ function fuglet {
   if [[ -x "$pth_figlet" ]]; then
     "$pth_figlet" -w 425  "$@" | perl -pe 's{([ ]+)(\S)}{sprintf("%c",96) x length($1) . $2}ge'
   else
-    printf "====\n"
     printf "==== %s\n", "$*"
-    printf "====\n"
   fi
 }
 
@@ -146,8 +144,18 @@ function custom_hook {
 
   configure_root_ssh
   configure_remote_bootstrap "$pth_bootstrap" "$username"
-  configure_remote_git_cache "$username"
-  configure_remote_aptitude
+
+  local cache_loaders=""
+
+  if [[ -f "$PORT_SSHD_FILE" ]]; then
+    configure_remote_git_cache "$username"
+    cache_loaders="$cache_loaders ./.git-sbin/with-git-cache"
+  fi
+
+  if [[ -f "$PORT_PROXY_FILE" ]]; then
+    configure_remote_aptitude
+    cache_loaders="$cache_loaders ./.git-sbin/with-http-cache"
+  fi
 
   ssh -F "$pth_ssh_config" default sudo atrm $(ssh -F "$pth_ssh_config" default sudo atq | awk '{print $1}') 2>&- > /dev/null || true
   ssh -F "$pth_ssh_config" default 'echo poweroff | sudo at now + 50 minutes'
@@ -156,7 +164,7 @@ function custom_hook {
   logger_info "starting $nm_bootstrap"
   ssh -F "$pth_ssh_config" -R 55555:127.0.0.1:$(cat $PORT_SSHD_FILE) -R 55556:127.0.0.1:$(cat $PORT_PROXY_FILE) -f default sleep 3600 || true &
   local failed
-  if ssh -F "$pth_ssh_config" -A ${username}default "env BUILD_IMAGE_PHASE=$BUILD_IMAGE_PHASE ./.git-sbin/with-http-cache ./.git-sbin/with-git-cache ./$nm_bootstrap"; then
+  if ssh -F "$pth_ssh_config" -A ${username}default "env BUILD_IMAGE_PHASE=$BUILD_IMAGE_PHASE $cache_loaders ./$nm_bootstrap"; then
     failed=$?
     logger_info "finished $nm_bootstrap"
     ssh -F "$pth_ssh_config" default sudo env LANG=C rm -vf /etc/apt/apt.conf.d/01proxy /var/run/reboot-required.pkgs /var/run/reboot-required
@@ -169,7 +177,7 @@ function custom_hook {
     logger_fatal "failed! $nm_bootstrap"
     local save_config="$(mktemp -t XXXXXX)"
     rsync -ia "$pth_ssh_config" "$save_config"
-    echo ssh -F "$save_config" -t -A "$username"default "\"env BUILD_IMAGE_PHASE=$BUILD_IMAGE_PHASE ./.git-sbin/with-http-cache ./.git-sbin/with-git-cache bash\""
+    echo ssh -F "$save_config" -t -A "$username"default "\"env BUILD_IMAGE_PHASE=$BUILD_IMAGE_PHASE $cache_loaders bash\""
   fi
 
   ssh -F "$pth_ssh_config" default sudo atrm $(ssh -F "$pth_ssh_config" default sudo atq | awk '{print $1}') || true
