@@ -1,4 +1,4 @@
-#!/usr/bin/env /bash
+#!/usr/bin/env bash
 
 set -efu
 
@@ -22,6 +22,8 @@ if [[ -n "${GIT_HOST:-}" ]]; then
   chmod 755 $GIT_SSH
 fi
 
-nc -z "$GIT_PORT"
+set -x
+
+nc -z localhost "$GIT_PORT"
 
 exec "$@"
