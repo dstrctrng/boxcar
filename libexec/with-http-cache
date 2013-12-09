@@ -1,6 +1,10 @@
-#!/bin/bash
+#!/usr/bin/env bash
+
+set -efu
 
 export http_proxy=http://localhost:55556
 export https_proxy=http://localhost:55556
+
+nc -q localhost 55556
 
 exec "$@"
