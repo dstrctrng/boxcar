@@ -50,6 +50,7 @@ function refresh {
 
   (cd $FLAGS_builddir/${nm_output} 2>&- && vagrant destroy -f > /dev/null 2>&-) || true
 
+  mkdir -p $FLAGS_builddir
   run $shome/bin/train start \
     --boxname $nm_input_box \
     --release_dir $FLAGS_builddir/${nm_output} \
