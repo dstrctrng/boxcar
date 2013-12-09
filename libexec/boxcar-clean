@@ -11,8 +11,6 @@ function remote_install {
 
   export DEBIAN_FRONTEND="noninteractive"
 
-  echo 'APT::Install-Recommends "0";' | tee /etc/apt/apt.conf.d/00DisableInstallRecommends
-
   # update everything
   aptitude update
   if [[ "$(ps -o command 1 | tail -1)" != "/sbin/init" ]]; then
@@ -26,13 +24,14 @@ function remote_install {
   fi
 
   # hwe stacks for updated distro kernel
-  aptitude install -y --install-recommends linux-{generic,tools}-lts-saucy
+  aptitude install -y linux-{generic,tools}-lts-saucy
   aptitude hold -y linux-{generic,tools}-lts-saucy
 
   # don't upgrade kernel hereafter
   aptitude hold linux-{,{headers,image}-}{generic,server,virtual}
 
   # basic packages
+  echo 'APT::Install-Recommends "0";' | tee /etc/apt/apt.conf.d/00DisableInstallRecommends
   aptitude -y install language-pack-en aptitude wget curl git rsync make bsdtar netcat openssh-server dkms
 
   # package cleanup
