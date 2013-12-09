@@ -38,27 +38,10 @@ function remote_install {
   aptitude hold linux-{,{headers,image}-}{generic,server,virtual}
 
   # basic packages
-  aptitude -y install wget curl netcat git rsync make bsdtar
-
-  # language
-  aptitude -y install language-pack-en
-
-  # unecessary daemons
-  aptitude -y purge whoopsie acpid nfs-common rpcbind
-
-  # unecessary editor
-  aptitude -y purge nano
-
-  # virtualbox
-  aptitude -y install dkms
+  aptitude -y install language-pack-en aptitude wget curl git rsync make bsdtar netcat openssh-server dkms
 
   # package cleanup
   aptitude clean
-
-  # don't start getty
-  for a in $(set +f; cd /etc/init && ls -d tty*.conf); do
-    echo "manual" >> "/etc/init/$a"
-  done
 
   # ssl updates
   update-ca-certificates --fresh > /dev/null

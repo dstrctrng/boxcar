@@ -7,7 +7,7 @@
 #/     seed-rvm.sh ssh_config rubies...
 
 function remote_install {
-  set -exfu
+  set -exfu; cd
 
   dpkg-divert --local --rename --add /sbin/initctl
   ln -s /bin/true /sbin/initctl
