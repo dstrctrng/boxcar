@@ -25,14 +25,9 @@ function remote_install {
     mv /usr/bin/ischroot.x /usr/bin/ischroot
   fi
 
-  source /etc/lsb-release
-  if [[ "$DISTRIB_CODENAME" = "precise" ]]; then
-    aptitude install -y --install-recommends linux-{generic,tools}-lts-raring
-    aptitude hold -y linux-{generic,tools}-lts-raring
-  else
-    aptitude install -y --install-recommends linux-image-extra-{generic,server,virtual}
-    aptitude hold -y linux-image-extra-{generic,server,virtual}
-  fi
+  # hwe stacks for updated distro kernel
+  aptitude install -y --install-recommends linux-{generic,tools}-lts-saucy
+  aptitude hold -y linux-{generic,tools}-lts-saucy
 
   # don't upgrade kernel hereafter
   aptitude hold linux-{,{headers,image}-}{generic,server,virtual}
