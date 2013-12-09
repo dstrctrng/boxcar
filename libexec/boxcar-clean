@@ -48,10 +48,8 @@ bitbucket.org ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAubiN81eDcafrgMeLzaFPsw2kNvEcqT
 EOF
 
   # remove cached network configurations
-  rm -rfv /etc/udev/rules.d/70-persistent-net.rules
-  mkdir -pv /etc/udev/rules.d/70-persistent-net.rules
-  rm -fv /lib/udev/rules.d/75-persistent-net-generator.rules
-  rm -rfv /dev/.udev/ /var/lib/dhcp3/*
+  rm -rf /etc/udev/rules.d/70-persistent-net.rules /lib/udev/rules.d/75-persistent-net-generator.rules /dev/.udev /var/lib/dhcp3
+  mkdir -p /etc/udev/rules.d/70-persistent-net.rules
 }
 
 if [[ "$#" = 0 ]]; then

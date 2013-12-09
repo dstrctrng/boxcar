@@ -13,8 +13,15 @@ function remote_install {
 
   # update everything
   aptitude update
+  if [[ "$(ps -o command 1 | tail -1)" != "/sbin/init" ]]; then
+    mv /usr/bin/ischroot /usr/bin/ischroot.x
+    ln -nfs $(which true) /usr/bin/ischroot
+  fi
   aptitude -y dist-upgrade
   aptitude -y safe-upgrade
+  if [[ "$(ps -o command 1 | tail -1)" != "/sbin/init" ]]; then
+    mv /usr/bin/ischroot.x /usr/bin/ischroot
+  fi
 
   # ssl updates
   update-ca-certificates --fresh > /dev/null
@@ -23,10 +30,8 @@ function remote_install {
   aptitude clean
 
   # remove cached network configurations
-  rm -rfv /etc/udev/rules.d/70-persistent-net.rules
-  mkdir -pv /etc/udev/rules.d/70-persistent-net.rules
-  rm -fv /lib/udev/rules.d/75-persistent-net-generator.rules
-  rm -rfv /dev/.udev/ /var/lib/dhcp3/*
+  rm -rf /etc/udev/rules.d/70-persistent-net.rules /lib/udev/rules.d/75-persistent-net-generator.rules /dev/.udev /var/lib/dhcp3
+  mkdir -p /etc/udev/rules.d/70-persistent-net.rules
 }
 
 if [[ "$#" = 0 ]]; then
