@@ -6,8 +6,8 @@
 #/ SYNOPSIS
 #/     bin/build all virtualbox precise
 #/     bin/build all virtualbox precise precise clean ...
-#/     bin/build all aws raring
-#/     bin/build all aws raring raring clean ...
+#/     bin/build all aws precise
+#/     bin/build all aws precise precise clean ...
 
 # figure out the project root under which bin, lib live
 shome="$(unset CDPATH; cd -P -- "$(dirname -- "$BASH_SOURCE")/.." && pwd -P)"
@@ -108,14 +108,14 @@ function build_train {
   FLAGS_cachedir="$VAULT/boxcar/${FLAGS_release}"
   export OVERRIDE_cachedir="$FLAGS_cachedir"
 
-  # boxcar raring
+  # boxcar precise
   local train="${FLAGS_release}"
 
   if [[ "$FLAGS_clean" = "$FLAGS_TRUE" ]]; then
-    # boxcar raring -> raring-clean(pre)
+    # boxcar precise -> precise-clean(pre)
     build_boxcars $train clean
 
-    # boxcar raring-clean(pre) -> raring-clean
+    # boxcar precise-clean(pre) -> precise-clean
     build_boxcars "$train-clean(pre)" clean-${FLAGS_provider}
     train="$train-clean"
   else
