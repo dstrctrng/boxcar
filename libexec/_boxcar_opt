@@ -1,8 +1,24 @@
 #!/bin/bash
 
+function guess_vagrant_default_provider {
+  local pth_vboxmanage="$(which VBoxManager 2>&- || true)"
+  if [[ -x "$pth_vboxmanage" ]]; then
+    echo "virtualbox"
+    return 0
+  fi
+
+  local pth_docker="$(which docker 2>&- || true)"
+  if [[ -x "$pth_docker" ]]; then
+    echo "docker"
+    return 0
+  fi
+
+  echo "virtualbox"
+}
+
 DEFINE_string "boxname" "" "Vagrant box name"
 DEFINE_string 'release' "precise" 'Ubuntu release'
-DEFINE_string 'provider' "virtualbox" 'Vagrant provider'
+DEFINE_string 'provider' "$(guess_vagrant_default_provider)" 'Vagrant provider'
 DEFINE_string 'branch' "boxcar" 'Generic label'
 DEFINE_string "output" "" "Where to bundle the vagrant box"
 DEFINE_string "release_dir" "$BOXCAR/vagrant-$(TZ=UTC date +%Y%m%d-%H%M-$$)" "Vagrant instance workarea"
