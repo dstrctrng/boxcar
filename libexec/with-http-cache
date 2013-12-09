@@ -1,10 +1,22 @@
 #!/usr/bin/env bash
 
-set -exfu
+set -efu
 
 export http_proxy=http://localhost:55556
 export https_proxy=http://localhost:55556
 
-nc -z localhost 55556
+set -x
+
+tries=0
+while [[ "$tries" < 5 ]]; do
+  if nc -z localhost 55556; then
+    break
+  fi
+  sleep 1
+  tries="$((tries + 1))"
+done
+if [[ "$tries" == 5 ]]; then
+  exit 1
+fi
 
 exec "$@"
