@@ -17,7 +17,7 @@ function fuglet {
   if [[ -x "$pth_figlet" ]]; then
     "$pth_figlet" -w 425  "$@" | perl -pe 's{([ ]+)(\S)}{sprintf("%c",96) x length($1) . $2}ge'
   else
-    printf "==== %s\n", "$*"
+    printf "[[[ %s ]]]\n" "$*"
   fi
 }
 
