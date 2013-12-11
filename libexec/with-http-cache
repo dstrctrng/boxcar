@@ -5,8 +5,6 @@ set -efu
 export http_proxy=http://localhost:55556
 export https_proxy=http://localhost:55556
 
-set -x
-
 tries=0
 while [[ "$tries" < 5 ]]; do
   if nc -z localhost 55556; then

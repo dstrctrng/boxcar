@@ -165,12 +165,12 @@ function custom_hook {
   if [[ -n "${cache_loaders}" ]]; then
     if [[ -f "$PORT_SSHD_FILE" ]]; then
       logger_info "starting git cache"
-      ssh -F "$pth_ssh_config" -R 55555:127.0.0.1:$(cat $PORT_SSHD_FILE) -f default sleep 3600 || true &
+      ssh -F "$pth_ssh_config" -R 55555:127.0.0.1:$(cat $PORT_SSHD_FILE) -f default sleep 86400 || true &
     fi
 
     if [[ -f "$PORT_PROXY_FILE" ]]; then
       logger_info "starting http cache/proxy"
-      ssh -F "$pth_ssh_config" -R 55556:127.0.0.1:$(cat $PORT_PROXY_FILE) -f default sleep 3600 || true &
+      ssh -F "$pth_ssh_config" -R 55556:127.0.0.1:$(cat $PORT_PROXY_FILE) -f default sleep 86400 || true &
     fi
   fi
 
@@ -180,19 +180,50 @@ function custom_hook {
     failed=$?
     logger_info "finished $nm_bootstrap"
     ssh -F "$pth_ssh_config" default sudo env LANG=C rm -vf /etc/apt/apt.conf.d/01proxy /var/run/reboot-required.pkgs /var/run/reboot-required
-    ssh -F "$pth_ssh_config" ${username}default env LANG=C rm -vf  "./$nm_bootstrap" ./.git-env
-    ssh -F "$pth_ssh_config" ${username}default env LANG=C rm -vfr ./.git-sbin
+    ssh -F "$pth_ssh_config" ${username}default env LANG=C rm -vfr "./$nm_bootstrap" ./.git-env ./.git-sbin
     ssh -F "$pth_ssh_config" default pkill sleep 2>&- || true
   else
     failed=$?
-    fuglet "FAILED $nm_bootstrap"
+
+    ssh -F "$pth_ssh_config" default pkill sleep 2>&- || true
+
     logger_fatal "failed! $nm_bootstrap"
     local save_config="$(mktemp -t XXXXXX)"
     rsync -ia "$pth_ssh_config" "$save_config"
-    echo ssh -F "$save_config" -t -A "$username"default "\"env BUILD_IMAGE_PHASE=$BUILD_IMAGE_PHASE bash\""
+
+    local agent_loader=""
+    if [[ -f "$SSH_AGENT_FILE" ]]; then
+      agent_loader="source $SSH_AGENT_FILE;"
+    fi
+    cat >> $OVERRIDE_failhook << ____EOF
+    $agent_loader
+____EOF
   fi
 
   ssh -F "$pth_ssh_config" default sudo atrm $(ssh -F "$pth_ssh_config" default sudo atq | awk '{print $1}') || true
+
+  if [[ "$failed" != 0 ]]; then
+    fuglet "exit code: $failed"
+
+    if [[ -n "${cache_loaders}" ]]; then
+      if [[ -f "$PORT_SSHD_FILE" ]]; then
+        cat >> $OVERRIDE_failhook << ________EOF
+          ssh -F "$pth_ssh_config" -R 55555:127.0.0.1:$(cat $PORT_SSHD_FILE) -f default sleep 86400 || true &
+________EOF
+      fi
+
+      if [[ -f "$PORT_PROXY_FILE" ]]; then
+        cat >> $OVERRIDE_failhook << ________EOF
+          ssh -F "$pth_ssh_config" -R 55556:127.0.0.1:$(cat $PORT_PROXY_FILE) -f default sleep 86400 || true &
+________EOF
+      fi
+    fi
+
+    cat >> $OVERRIDE_failhook << ____EOF
+      ssh -F "$save_config" -t -A "$username"default "env BUILD_IMAGE_PHASE=$BUILD_IMAGE_PHASE ${cache_loaders:+${cache_loaders} }bash"
+____EOF
+  fi
+
   return $failed
 }
 

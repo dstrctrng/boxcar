@@ -26,3 +26,5 @@ DEFINE_string "ssh_username" "ubuntu" "Vagrant ssh username"
 
 DEFINE_string builddir "$BOXCAR/build" "Build directory"
 DEFINE_string cachedir "$BOXCAR/build" "Cache directory"
+
+DEFINE_string failhook "" "Run script in case of failure"
