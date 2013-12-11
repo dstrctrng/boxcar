@@ -71,7 +71,7 @@ function main {
       rsync -ia -e "ssh -F '$pth_ssh_config'" default:*.bz2 $FLAGS_cachedir/
       ;;
     install)
-      (set +f; rsync -ia -e "ssh -F '$pth_ssh_config'" $FLAGS_cachedir/ree*bz2 $FLAGS_cachedir/ruby*bz2 default:)
+      (set +f; rsync -ia -e "ssh -F '$pth_ssh_config'" $FLAGS_cachedir/ruby*bz2 default:)
       standard_hook "$bootstrap" "$@"
       ;;
     *)
