@@ -153,7 +153,7 @@ function main {
     if [[ -s "$pth_failhook" ]]; then
       fuglet "debug ssh"
       bash $pth_failhook || true
-      echo '#' "$cat $pth_failhook"
+      echo '#' "cat $pth_failhook"
       cat $pth_failhook
     fi
   elif [[ -z "${FLAGS_failhook}" ]]; then
