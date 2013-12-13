@@ -10,6 +10,15 @@ fi
 
 export BOXCAR
 
+if [[ -z "${ORIGINAL_VBOX_MANAGE:-}" ]]; then
+  ORIGINAL_VBOX_MANAGE="$(which VBoxManage 2>&- || true)"
+  if [[ -x "${ORIGINAL_VBOX_MANAGE}" ]]; then
+    export ORIGINAL_VBOX_MANAGE
+    boxcar_shome="$(unset CDPATH; cd -P -- "$(dirname -- "${BASH_SOURCE}")/.." && pwd -P)"
+    PATH="$boxcar_shome/libexec/virtualbox:$PATH"
+  fi
+fi
+
 PATH="$PATH:$(unset CDPATH; cd -P -- "$(dirname -- "${BASH_SOURCE}")/.." && pwd -P)/libexec"
 
 function fuglet {

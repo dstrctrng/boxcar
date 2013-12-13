@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+set -efu
+
+if [[ -x "${ORIGINAL_VBOX_MANAGE:-}" ]]; then
+  printf '%s\n' "$ORIGINAL_VBOX_MANAGE $*" 1>&2
+  exec "$ORIGINAL_VBOX_MANAGE" "$@"
+fi
+
+exec false
