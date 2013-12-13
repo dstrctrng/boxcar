@@ -3,7 +3,9 @@
 set -efu
 
 if [[ -x "${ORIGINAL_VBOX_MANAGE:-}" ]]; then
-  printf '%s\n' "$ORIGINAL_VBOX_MANAGE $*" 1>&2
+  if [[ -n "${VBOX_MANAGE_LOG:-}" ]]; then
+    printf '%s\n' "$ORIGINAL_VBOX_MANAGE $*" >> "$VBOX_MANAGE_LOG"
+  fi
   exec "$ORIGINAL_VBOX_MANAGE" "$@"
 fi
 
