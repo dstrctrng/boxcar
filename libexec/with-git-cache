@@ -9,15 +9,11 @@ fi
 PATH="$HOME/.git-sbin:$PATH"
 
 if [[ -n "${GIT_USER:-}" ]]; then
-  export GIT_HOST="$GIT_USER@localhost"
-fi
-
-if [[ -n "${GIT_HOST:-}" ]]; then
   export GIT_SSH=$(mktemp -t XXXXXX)
   trap "rm -f $GIT_SSH" EXIT
   {
     printf "#!/bin/bash\n"
-    printf "%s\n" 'shift; exec ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -p ${GIT_PORT} ${GIT_HOST} "$*"' 
+    printf "%s\n" 'shift; exec ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -p ${GIT_PORT} ${GIT_USER}@localhost "$*"' 
   } > $GIT_SSH
   chmod 755 $GIT_SSH
 fi
