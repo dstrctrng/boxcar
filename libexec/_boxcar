@@ -185,7 +185,7 @@ function custom_hook {
 
   logger_info "starting $nm_bootstrap"
   local failed
-  if ssh -F "$pth_ssh_config" -A ${username}default "env BUILD_IMAGE_PHASE=$BUILD_IMAGE_PHASE $cache_loaders ./$nm_bootstrap"; then
+  if ssh -F "$pth_ssh_config" -A ${username}default "exec env BUILD_IMAGE_PHASE=$BUILD_IMAGE_PHASE $cache_loaders ./$nm_bootstrap"; then
     failed=$?
     logger_info "finished $nm_bootstrap"
     ssh -F "$pth_ssh_config" default sudo env LANG=C rm -vf /etc/apt/apt.conf.d/01proxy /var/run/reboot-required.pkgs /var/run/reboot-required
@@ -214,22 +214,19 @@ ____EOF
   if [[ "$failed" != 0 ]]; then
     fuglet "exit code: $failed"
 
+    local redirects=""
     if [[ -n "${cache_loaders}" ]]; then
       if [[ -f "$PORT_SSHD_FILE" ]]; then
-        cat >> $OVERRIDE_failhook << ________EOF
-          ssh -F "$pth_ssh_config" -R 55555:127.0.0.1:$(cat $PORT_SSHD_FILE) -f default sleep 86400 || true &
-________EOF
+        redirects="$redirects -R 55555:127.0.0.1:$(cat $PORT_SSHD_FILE)"
       fi
 
       if [[ -f "$PORT_PROXY_FILE" ]]; then
-        cat >> $OVERRIDE_failhook << ________EOF
-          ssh -F "$pth_ssh_config" -R 55556:127.0.0.1:$(cat $PORT_PROXY_FILE) -f default sleep 86400 || true &
-________EOF
+        redirects="$redirects -R 55556:127.0.0.1:$(cat $PORT_PROXY_FILE)"
       fi
     fi
 
     cat >> $OVERRIDE_failhook << ____EOF
-      ssh -F "$save_config" -t -A "$username"default "env BUILD_IMAGE_PHASE=$BUILD_IMAGE_PHASE ${cache_loaders:+${cache_loaders} }bash"
+      ssh -F "$save_config" -t -A "$username"default "exec env BUILD_IMAGE_PHASE=$BUILD_IMAGE_PHASE ${cache_loaders:+${cache_loaders} }bash"
 ____EOF
   fi
 
