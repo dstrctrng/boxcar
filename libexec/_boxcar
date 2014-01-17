@@ -214,19 +214,23 @@ ____EOF
   if [[ "$failed" != 0 ]]; then
     fuglet "exit code: $failed"
 
-    local redirects=""
     if [[ -n "${cache_loaders}" ]]; then
       if [[ -f "$PORT_SSHD_FILE" ]]; then
-        redirects="$redirects -R 55555:127.0.0.1:$(cat $PORT_SSHD_FILE)"
+        echo "  RemoteForward 55555 127.0.0.1:$(cat $PORT_SSHD_FILE)" >> "$save_config"
       fi
 
       if [[ -f "$PORT_PROXY_FILE" ]]; then
-        redirects="$redirects -R 55556:127.0.0.1:$(cat $PORT_PROXY_FILE)"
+        echo "  RemoteForward 55556 127.0.0.1:$(cat $PORT_PROXY_FILE)" >> "$save_config"
       fi
     fi
 
+    if [[ -n "${username:-}" ]]; then
+      echo "  User $username" >> "$save_config"
+    fi
+    echo "  ForwardAgent yes" >> "$save_config"
+    
     cat >> $OVERRIDE_failhook << ____EOF
-      ssh -F "$save_config" -t -A "$username"default "exec env BUILD_IMAGE_PHASE=$BUILD_IMAGE_PHASE ${cache_loaders:+${cache_loaders} }bash"
+ssh -F "$save_config" -t default "exec env BUILD_IMAGE_PHASE=$BUILD_IMAGE_PHASE ${cache_loaders:+${cache_loaders} }bash -l"
 ____EOF
   fi
 
