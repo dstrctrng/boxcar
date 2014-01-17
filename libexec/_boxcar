@@ -72,11 +72,11 @@ function configure_remote_git_cache {
   local tmp_git_env="$(mktemp -t XXXXXXXXX)"
   printf "export GIT_USER=%s\n" "${GIT_USER:-$LOGNAME}" >> "$tmp_git_env"
   printf "export GIT_PORT=%s\n" "${GIT_PORT:-55555}" >> "$tmp_git_env"
-  ssh -F $pth_ssh_config "$username"default mkdir -p .git-sbin
+  ssh -F $pth_ssh_config "$username"default mkdir -p .boxcar
   set +f
-  rsync -e "ssh -F $pth_ssh_config" $BOXCAR_GHOME/libexec/with-git-cache $BOXCAR_GHOME/libexec/with-http-cache $BOXCAR_GHOME/libexec/sbin/* "$username"default:.git-sbin/
+  rsync -e "ssh -F $pth_ssh_config" $BOXCAR_GHOME/libexec/with-git-cache $BOXCAR_GHOME/libexec/with-http-cache $BOXCAR_GHOME/libexec/sbin/* "$username"default:.boxcar/
   set -f
-  rsync -e "ssh -F $pth_ssh_config" $tmp_git_env "$username"default:.git-env
+  rsync -e "ssh -F $pth_ssh_config" $tmp_git_env "$username"default:.boxcar/env
   rm -f $tmp_git_env
 }
 
@@ -158,12 +158,12 @@ function custom_hook {
 
   if [[ -f "$PORT_SSHD_FILE" ]]; then
     configure_remote_git_cache "$username"
-    cache_loaders="$cache_loaders ./.git-sbin/with-git-cache"
+    cache_loaders="$cache_loaders ./.boxcar/with-git-cache"
   fi
 
   if [[ -f "$PORT_PROXY_FILE" ]]; then
     configure_remote_aptitude
-    cache_loaders="$cache_loaders ./.git-sbin/with-http-cache"
+    cache_loaders="$cache_loaders ./.boxcar/with-http-cache"
   fi
 
   ssh -F "$pth_ssh_config" default sudo atrm $(ssh -F "$pth_ssh_config" default sudo atq | awk '{print $1}') 2>&- > /dev/null || true
@@ -189,7 +189,7 @@ function custom_hook {
     failed=$?
     logger_info "finished $nm_bootstrap"
     ssh -F "$pth_ssh_config" default sudo env LANG=C rm -vf /etc/apt/apt.conf.d/01proxy /var/run/reboot-required.pkgs /var/run/reboot-required
-    ssh -F "$pth_ssh_config" ${username}default env LANG=C rm -vfr "./$nm_bootstrap" ./.git-env ./.git-sbin
+    ssh -F "$pth_ssh_config" ${username}default env LANG=C rm -vfr "./$nm_bootstrap" ./.boxcar
     ssh -F "$pth_ssh_config" default pkill sleep 2>&- || true
   else
     failed=$?

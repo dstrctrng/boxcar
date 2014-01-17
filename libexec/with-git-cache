@@ -2,11 +2,11 @@
 
 set -efu
 
-if [[ -f "$HOME/.git-env" ]]; then
-  source "$HOME/.git-env"
+if [[ -f "$HOME/.boxcar/env" ]]; then
+  source "$HOME/.boxcar/env"
 fi
 
-PATH="$HOME/.git-sbin:$PATH"
+PATH="$HOME/.boxcar:$PATH"
 
 if [[ -n "${GIT_USER:-}" ]]; then
   export GIT_SSH=$(mktemp -t XXXXXX)
