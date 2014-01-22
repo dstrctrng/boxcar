@@ -204,9 +204,6 @@ function custom_hook {
     if [[ -f "$SSH_AGENT_FILE" ]]; then
       agent_loader="source $SSH_AGENT_FILE;"
     fi
-    cat >> $OVERRIDE_failhook << ____EOF
-    $agent_loader
-____EOF
   fi
 
   ssh -F "$pth_ssh_config" default sudo atrm $(ssh -F "$pth_ssh_config" default sudo atq | awk '{print $1}') || true
@@ -230,7 +227,7 @@ ____EOF
     echo "  ForwardAgent yes" >> "$save_config"
     
     cat >> $OVERRIDE_failhook << ____EOF
-ssh -F "$save_config" -t default "exec env BUILD_IMAGE_PHASE=$BUILD_IMAGE_PHASE ${cache_loaders:+${cache_loaders} }bash -l"
+    ($agent_loader; ssh -F "$save_config" -t ${username}default "exec env BUILD_IMAGE_PHASE=$BUILD_IMAGE_PHASE ${cache_loaders:+${cache_loaders} }bash -l")
 ____EOF
   fi
 
