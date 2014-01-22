@@ -8,6 +8,8 @@
 
 function remote_install {
   set -exfu; cd
+
+  perl -pe 's{^(disable_root):.*}{$1: 0}' -i /etc/cloud/cloud.cfg
 }
 
 if [[ "$#" = 0 ]]; then
