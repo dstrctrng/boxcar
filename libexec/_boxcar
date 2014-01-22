@@ -199,11 +199,6 @@ function custom_hook {
     logger_fatal "failed! $nm_bootstrap"
     local save_config="$(mktemp -t XXXXXX)"
     rsync -ia "$pth_ssh_config" "$save_config"
-
-    local agent_loader=""
-    if [[ -f "$SSH_AGENT_FILE" ]]; then
-      agent_loader="source $SSH_AGENT_FILE;"
-    fi
   fi
 
   ssh -F "$pth_ssh_config" default sudo atrm $(ssh -F "$pth_ssh_config" default sudo atq | awk '{print $1}') || true
@@ -226,8 +221,13 @@ function custom_hook {
     fi
     echo "  ForwardAgent yes" >> "$save_config"
     
+    local agent_loader=""
+    if [[ -f "$SSH_AGENT_FILE" ]]; then
+      agent_loader="source $SSH_AGENT_FILE"
+    fi
+
     cat >> $OVERRIDE_failhook << ____EOF
-    ($agent_loader; ssh -F "$save_config" -t ${username}default "exec env BUILD_IMAGE_PHASE=$BUILD_IMAGE_PHASE ${cache_loaders:+${cache_loaders} }bash -l")
+    (${agent_loader:+${agent_loader}; }ssh -F "$save_config" -t ${username}default "exec env BUILD_IMAGE_PHASE=$BUILD_IMAGE_PHASE ${cache_loaders:+${cache_loaders} }bash -l")
 ____EOF
   fi
 
