@@ -41,7 +41,7 @@ __EOF
 
   # basic packages
   echo 'APT::Install-Recommends "0";' | tee /etc/apt/apt.conf.d/00DisableInstallRecommends
-  aptitude -y install language-pack-en aptitude wget curl git rsync make bsdtar netcat openssh-server dkms
+  aptitude -y install wget curl git rsync make bsdtar netcat dkms
 
   # package cleanup
   aptitude clean
