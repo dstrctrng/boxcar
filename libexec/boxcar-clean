@@ -28,7 +28,7 @@ __EOF
   fi
   aptitude -y dist-upgrade
   aptitude -y safe-upgrade
-  if [[ "$(ps -o command 1 | tail -1)" != "/sbin/init" ]]; then
+  if [[ -x /usr/bin/ischroot.x ]]; then
     mv /usr/bin/ischroot.x /usr/bin/ischroot
   fi
 
