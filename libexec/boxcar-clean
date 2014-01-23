@@ -11,6 +11,15 @@ function remote_install {
 
   export DEBIAN_FRONTEND="noninteractive"
 
+  # complete list of apt repos
+  local nm_distro='precise'
+  cat > /etc/apt/sources.list << __EOF
+deb http://security.ubuntu.com/ubuntu ${nm_distro}-security main restricted universe multiverse
+deb http://us.archive.ubuntu.com/ubuntu/ ${nm_distro} main restricted universe multiverse
+deb http://us.archive.ubuntu.com/ubuntu/ ${nm_distro}-backports main restricted universe multiverse
+deb http://us.archive.ubuntu.com/ubuntu/ ${nm_distro}-updates main restricted universe multiverse
+__EOF
+
   # update everything
   aptitude update
   if [[ "$(ps -o command 1 | tail -1)" != "/sbin/init" ]]; then
