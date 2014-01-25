@@ -42,6 +42,7 @@ __EOF
 
   # basic packages
   echo 'APT::Install-Recommends "0";' | tee /etc/apt/apt.conf.d/00DisableInstallRecommends
+  echo 'Acquire::Languages "none";;'  | tee /etc/apt/apt.conf.d/99DontAcquireLanguages
   aptitude -y install wget curl git rsync make bsdtar netcat dkms
 
   # package cleanup
