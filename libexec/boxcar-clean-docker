@@ -8,11 +8,6 @@
 
 function remote_install {
   set -exfu; cd
-
-  dpkg-divert --local --rename --add /sbin/initctl
-  ln -s /bin/true /sbin/initctl
-
-  install -d -m 0755 -o root -g root /var/run/sshd
 }
 
 if [[ "$#" = 0 ]]; then
