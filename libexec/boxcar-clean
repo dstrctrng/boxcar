@@ -13,12 +13,77 @@ function remote_install {
 
   # complete list of apt repos
   local nm_distro='precise'
-  cat > /etc/apt/sources.list << __EOF
-deb http://security.ubuntu.com/ubuntu ${nm_distro}-security main restricted universe multiverse
-deb http://us.archive.ubuntu.com/ubuntu/ ${nm_distro} main restricted universe multiverse
-deb http://us.archive.ubuntu.com/ubuntu/ ${nm_distro}-backports main restricted universe multiverse
-deb http://us.archive.ubuntu.com/ubuntu/ ${nm_distro}-updates main restricted universe multiverse
+  cat > /etc/cloud/templates/sources.list.tmpl << __EOF
+\## Note, this file is written by cloud-init on first boot of an instance
+\## modifications made here will not survive a re-bundle.
+\## if you wish to make changes you can:
+\## a.) add 'apt_preserve_sources_list: true' to /etc/cloud/cloud.cfg
+\##     or do the same in user-data
+\## b.) add sources in /etc/apt/sources.list.d
+\## c.) make changes to template file /etc/cloud/templates/sources.list.tmpl
+\###
+
+\## main
+deb $mirror $codename main
+deb-src $mirror $codename main
+
+\## updates
+deb $mirror $codename-updates main
+deb-src $mirror $codename-updates main
+
+\## universe
+deb $mirror $codename universe
+deb-src $mirror $codename universe
+deb $mirror $codename-updates universe
+deb-src $mirror $codename-updates universe
+
+\## multiverse
+deb $mirror $codename multiverse
+deb-src $mirror $codename multiverse
+deb $mirror $codename-updates multiverse
+deb-src $mirror $codename-updates multiverse
+
+\## backports
+deb $mirror $codename-backports main restricted universe multiverse
+deb-src $mirror $codename-backports main restricted universe multiverse
+
+\## partner
+deb http://archive.canonical.com/ubuntu $codename partner
+deb-src http://archive.canonical.com/ubuntu $codename partner
+
+\## security
+deb http://security.ubuntu.com/ubuntu $codename-security main
+deb-src http://security.ubuntu.com/ubuntu $codename-security main
+deb http://security.ubuntu.com/ubuntu $codename-security universe
+deb-src http://security.ubuntu.com/ubuntu $codename-security universe
+deb http://security.ubuntu.com/ubuntu $codename-security multiverse
+deb-src http://security.ubuntu.com/ubuntu $codename-security multiverse
 __EOF
+
+  # cloud init to enable root and regenerate apt sources.list
+  local tmp_cloud="$(mktemp -t XXXXXX)"
+
+  sudo mkdir -p $prefix/var/lib/cloud/seed/nocloud
+
+  cat > /var/lib/cloud/seed/nocloud/meta-data << __EOF
+instance-id: precise-$(date +%s)-$$
+__EOF
+  sudo install -o root -g root -m 0600 $tmp_cloud $prefix/var/lib/cloud/seed/nocloud/meta-data
+
+  cat > $tmp_cloud  << __EOF
+#cloud-config
+
+disable_root: 0
+__EOF
+  sudo install -o root -g root -m 0600 $tmp_cloud $prefix/var/lib/cloud/seed/nocloud/user-data
+
+  rm -f $tmp_cloud
+
+  # run and verify cloud init
+  sudo cloud-init start-local || true
+  sudo cloud-init-cfg all config
+  sudo cloud-init-cfg all final
+  sudo rm -f $prefix/var/lib/cloud/seed/nocloud/meta-data
 
   # update everything
   aptitude update
@@ -42,7 +107,7 @@ __EOF
 
   # basic packages
   echo 'APT::Install-Recommends "0";' | tee /etc/apt/apt.conf.d/00DisableInstallRecommends
-  echo 'Acquire::Languages "none";;'  | tee /etc/apt/apt.conf.d/99DontAcquireLanguages
+  echo 'Acquire::Languages "none";'  | tee /etc/apt/apt.conf.d/99DontAcquireLanguages
   aptitude -y install wget curl git rsync make bsdtar netcat dkms
 
   # package cleanup
