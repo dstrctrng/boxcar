@@ -118,10 +118,15 @@ function build_train {
 
   if [[ "$FLAGS_clean" = "$FLAGS_TRUE" ]]; then
     # boxcar precise -> precise-clean(pre)
-    build_boxcars $train clean
+    if ! (build_boxcars "$train" "clean"); then
+      return 1
+    fi
 
     # boxcar precise-clean(pre) -> precise-clean
-    build_boxcars "$train-clean(pre)" clean-${FLAGS_provider}
+    if ! (build_boxcars "$train-clean(pre)" "clean-${FLAGS_provider}"); then
+      return 1
+    fi
+
     train="$train-clean"
   else
     # boxcar $1
@@ -132,7 +137,9 @@ function build_train {
   fi
   
   if [[ "$#" > 0 ]]; then
-    build_boxcars "$train" "$@"
+    if ! (build_boxcars "$train" "$@"); then
+      return 1
+    fi
   fi
 }
 
@@ -161,6 +168,3 @@ function main {
 }
 
 require sub "$BASH_SOURCE" "$@"
-
-
-
