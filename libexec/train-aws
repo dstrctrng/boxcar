@@ -133,7 +133,7 @@ EOF
 }
 
 function build_keypair {
-  local nm_keypair="tmp-build-ami-keypair-${$FLAGS_boxname}-$(TZ=UTC date +%s)-$$"
+local nm_keypair="tmp-build-ami-keypair-$(echo "${FLAGS_boxname}" | perl -pe 's#[^a-zA-Z0-9]+#-#g')-$(TZ=UTC date +%s)-$$"
   {
     rm -f "$FLAGS_release_dir/.id_rsa"
     ssh-keygen -N "" -f "$FLAGS_release_dir/.id_rsa"
