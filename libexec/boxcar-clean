@@ -13,6 +13,7 @@ function remote_install {
 
   # complete list of apt repos
   local nm_distro='precise'
+  local d='$'
   cat > /etc/cloud/templates/sources.list.tmpl << __EOF
 \## Note, this file is written by cloud-init on first boot of an instance
 \## modifications made here will not survive a re-bundle.
@@ -24,58 +25,58 @@ function remote_install {
 \###
 
 \## main
-deb $mirror $codename main
-deb-src $mirror $codename main
+deb ${d}mirror ${d}codename main
+deb-src ${d}mirror ${d}codename main
 
 \## updates
-deb $mirror $codename-updates main
-deb-src $mirror $codename-updates main
+deb ${d}mirror ${d}codename-updates main
+deb-src ${d}mirror ${d}codename-updates main
 
 \## universe
-deb $mirror $codename universe
-deb-src $mirror $codename universe
-deb $mirror $codename-updates universe
-deb-src $mirror $codename-updates universe
+deb ${d}mirror ${d}codename universe
+deb-src ${d}mirror ${d}codename universe
+deb ${d}mirror ${d}codename-updates universe
+deb-src ${d}mirror ${d}codename-updates universe
 
 \## multiverse
-deb $mirror $codename multiverse
-deb-src $mirror $codename multiverse
-deb $mirror $codename-updates multiverse
-deb-src $mirror $codename-updates multiverse
+deb ${d}mirror ${d}codename multiverse
+deb-src ${d}mirror ${d}codename multiverse
+deb ${d}mirror ${d}codename-updates multiverse
+deb-src ${d}mirror ${d}codename-updates multiverse
 
 \## backports
-deb $mirror $codename-backports main restricted universe multiverse
-deb-src $mirror $codename-backports main restricted universe multiverse
+deb ${d}mirror ${d}codename-backports main restricted universe multiverse
+deb-src ${d}mirror ${d}codename-backports main restricted universe multiverse
 
 \## partner
-deb http://archive.canonical.com/ubuntu $codename partner
-deb-src http://archive.canonical.com/ubuntu $codename partner
+deb http://archive.canonical.com/ubuntu ${d}codename partner
+deb-src http://archive.canonical.com/ubuntu ${d}codename partner
 
 \## security
-deb http://security.ubuntu.com/ubuntu $codename-security main
-deb-src http://security.ubuntu.com/ubuntu $codename-security main
-deb http://security.ubuntu.com/ubuntu $codename-security universe
-deb-src http://security.ubuntu.com/ubuntu $codename-security universe
-deb http://security.ubuntu.com/ubuntu $codename-security multiverse
-deb-src http://security.ubuntu.com/ubuntu $codename-security multiverse
+deb http://security.ubuntu.com/ubuntu ${d}codename-security main
+deb-src http://security.ubuntu.com/ubuntu ${d}codename-security main
+deb http://security.ubuntu.com/ubuntu ${d}codename-security universe
+deb-src http://security.ubuntu.com/ubuntu ${d}codename-security universe
+deb http://security.ubuntu.com/ubuntu ${d}codename-security multiverse
+deb-src http://security.ubuntu.com/ubuntu ${d}codename-security multiverse
 __EOF
 
   # cloud init to enable root and regenerate apt sources.list
   local tmp_cloud="$(mktemp -t XXXXXX)"
 
-  sudo mkdir -p $prefix/var/lib/cloud/seed/nocloud
+  sudo mkdir -p /var/lib/cloud/seed/nocloud
 
   cat > /var/lib/cloud/seed/nocloud/meta-data << __EOF
 instance-id: precise-$(date +%s)-$$
 __EOF
-  sudo install -o root -g root -m 0600 $tmp_cloud $prefix/var/lib/cloud/seed/nocloud/meta-data
+  sudo install -o root -g root -m 0600 $tmp_cloud /var/lib/cloud/seed/nocloud/meta-data
 
   cat > $tmp_cloud  << __EOF
 #cloud-config
 
 disable_root: 0
 __EOF
-  sudo install -o root -g root -m 0600 $tmp_cloud $prefix/var/lib/cloud/seed/nocloud/user-data
+  sudo install -o root -g root -m 0600 $tmp_cloud /var/lib/cloud/seed/nocloud/user-data
 
   rm -f $tmp_cloud
 
@@ -83,7 +84,7 @@ __EOF
   sudo cloud-init start-local || true
   sudo cloud-init-cfg all config
   sudo cloud-init-cfg all final
-  sudo rm -f $prefix/var/lib/cloud/seed/nocloud/meta-data
+  sudo rm -f /var/lib/cloud/seed/nocloud/meta-data
 
   # update everything
   aptitude update
