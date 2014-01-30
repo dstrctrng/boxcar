@@ -1,2 +1,0 @@
-install -d -m 0755 -o root -g root /var/run/sshd
-exec /usr/sbin/sshd -D

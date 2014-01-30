@@ -59,7 +59,7 @@ function conf_vagrant {
       "box": "${nm_box}",
       "release_dir": "$FLAGS_release_dir",
       "ssh_username": "$FLAGS_ssh_username",
-      "shell_args": "bash -c '$(cat $shome/libexec/init-docker | perl -pe 's{\s*$}{\\n}g')'"
+      "shell_args": "/sbin/init.orig"
     }
   }
 EOF
