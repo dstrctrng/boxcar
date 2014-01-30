@@ -22,6 +22,7 @@ DEFINE_string 'region' "${AWS_DEFAULT_REGION:-us-west-1}" 'AWS region'
 DEFINE_string 'disk' 'ebs' 'AWS disk type'
 DEFINE_string 'arch' 'amd64' 'AWS arch'
 DEFINE_string 'instype' 'm1.large' "AWS instance type"
+DEFINE_string 'rootsize' '50' 'Size (GB) of root volume'
 
 function pick_ami {
 	# This selects the most recent release Ubuntu cloud image
@@ -124,7 +125,8 @@ function conf_vagrant {
       "keypair_name": "$nm_keypair",
       "instance_type": "m1.large",
       "ssh_username": "$FLAGS_ssh_username",
-      "ssh_private_key_path": "$pth_private_key_path"
+      "ssh_private_key_path": "$pth_private_key_path",
+      "root_volume_size": "$FLAGS_rootsize"
     }
   }
 EOF

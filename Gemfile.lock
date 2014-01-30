@@ -20,7 +20,7 @@ GEM
       puma (~> 1.6)
       rest-client (>= 1.0.4, < 1.7.0)
       yajl-ruby (~> 1.1)
-    chef-zero (1.7.2)
+    chef-zero (1.7.3)
       hashie (~> 2.0)
       json
       mixlib-log (~> 1.3)
@@ -56,7 +56,7 @@ GEM
       mixlib-shellout
       systemu (~> 2.5.2)
       yajl-ruby
-    pry (0.9.12.4)
+    pry (0.9.12.6)
       coderay (~> 1.0)
       method_source (~> 0.8)
       slop (~> 3.4)
@@ -69,11 +69,11 @@ GEM
     systemu (2.5.2)
     tvd-tvdinner (0.0.27)
       chef
-    tvd-vagrant (0.0.21)
+    tvd-vagrant (0.0.22)
       tvd-tvdinner
     tvdinner (0.0.5)
       chef
-    yajl-ruby (1.1.0)
+    yajl-ruby (1.2.0)
 
 PLATFORMS
   ruby
