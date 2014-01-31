@@ -88,16 +88,8 @@ __EOF
 
   # update everything
   aptitude update
-  if [[ "$(ps -o command 1 | tail -1)" != "/sbin/init" ]]; then
-    mv /usr/bin/ischroot /usr/bin/ischroot.x
-    ln -nfs $(which true) /usr/bin/ischroot
-    cp -a /sbin/init /sbin/init.orig
-  fi
   aptitude -y dist-upgrade
   aptitude -y safe-upgrade
-  if [[ -x /usr/bin/ischroot.x ]]; then
-    mv /usr/bin/ischroot.x /usr/bin/ischroot
-  fi
 
   # hwe stacks for updated distro kernel
   aptitude install -y linux-{generic,tools}-lts-saucy
