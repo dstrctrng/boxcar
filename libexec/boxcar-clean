@@ -86,6 +86,16 @@ __EOF
   sudo cloud-init-cfg all final
   sudo rm -f /var/lib/cloud/seed/nocloud/meta-data
 
+  # disable tty
+  local override="$(mktemp -t XXXXXX)"
+  set +f
+  for t in /etc/init/tty*.conf; do 
+    echo manual > $override
+    cp -f $override ${t%.conf}.override
+    stop ${t%.conf} || :
+  done
+  set -f
+
   # update everything
   aptitude update
   aptitude -y -o Dpkg::Options::=--force-confdef -o Dpkg::Options::=--force-confnew dist-upgrade
