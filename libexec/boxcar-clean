@@ -88,8 +88,8 @@ __EOF
 
   # update everything
   aptitude update
-  aptitude -y dist-upgrade
-  aptitude -y safe-upgrade
+  aptitude -y -o Dpkg::Options::=--force-confdef -o Dpkg::Options::=--force-confnew dist-upgrade
+  aptitude -y -o Dpkg::Options::=--force-confdef -o Dpkg::Options::=--force-confnew safe-upgrade
 
   # hwe stacks for updated distro kernel
   aptitude install -y linux-{generic,tools}-lts-saucy
