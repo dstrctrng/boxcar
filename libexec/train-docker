@@ -52,6 +52,11 @@ function conf_vagrant {
   local nm_box="$1"; shift
 
   local tmp_dna="$(mktemp -t XXXXXXXXX)"
+  local privileged="/sbin/init.orig"
+  if [[ -n "$DOCKER_PRIVILEGED" ]]; then
+    privileged="${DOCKER_CMD:-bash -c 'mkdir -p /var/run/sshd; exec /usr/sbin/sshd -D'}"
+  fi
+
   cat > "$tmp_dna" <<EOF
   { 
     "run_list": ["vagrant::${FLAGS_vprovider}"], 
@@ -59,7 +64,7 @@ function conf_vagrant {
       "box": "${nm_box}",
       "release_dir": "$FLAGS_release_dir",
       "ssh_username": "$FLAGS_ssh_username",
-      "shell_args": "/sbin/init.orig"
+      "shell_args": "$privileged"
     }
   }
 EOF
