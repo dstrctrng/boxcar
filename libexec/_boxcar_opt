@@ -21,6 +21,7 @@ DEFINE_string 'release' "precise" 'Ubuntu release'
 DEFINE_string 'provider' "$(guess_vagrant_default_provider)" 'Vagrant provider'
 DEFINE_string 'branch' "master" 'Generic label'
 DEFINE_string "output" "" "Where to bundle the vagrant box"
+DEFINE_boolean "fast" "$FLAGS_FALSE" "Dont run slow ops like exports"
 DEFINE_string "release_dir" "$BOXCAR/vagrant-$(TZ=UTC date +%Y%m%d-%H%M-$$)" "Vagrant instance workarea"
 DEFINE_string "ssh_username" "ubuntu" "Vagrant ssh username"
 

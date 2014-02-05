@@ -61,7 +61,11 @@ function build_vagrant {
   local nm_keypair="$(build_keypair)"
   demo_vagrant "$nm_keypair" "$FLAGS_boxname" "$@"
   early_termination
-  bundle_vagrant
+  if [[ "$FLAGS_fast" = "$FLAGS_FALSE" ]]; then
+    bundle_vagrant
+  else
+    (cd $FLAGS_release_dir && vagrant destroy -f)
+  fi
 
   delete_keypair "$nm_keypair"
 }
