@@ -27,7 +27,11 @@ bootstrap="$BASH_SOURCE"
 
 # entry point
 function main {
-  standard_hook "$bootstrap" "$@"
+  if [[ "$BUILD_IMAGE_PHASE" = "install" ]]; then
+    standard_hook "$bootstrap" "$@"
+  else
+    "standard_${BUILD_IMAGE_PHASE}_hook" "$bootstrap" "$@"
+  fi
 }
 
 require sub "$BASH_SOURCE" "$@"
