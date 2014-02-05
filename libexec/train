@@ -62,7 +62,9 @@ function refresh {
     return "$err_pipe"
   fi
 
-  vagrant box add $nm_box $FLAGS_builddir/$nm_output.box
+  if [[ "$FLAGS_fast" = "$FLAGS_true" ]]; then
+    vagrant box add $nm_box $FLAGS_builddir/$nm_output.box
+  fi
 
   rm -rf $FLAGS_builddir/${nm_output}
 }
@@ -155,6 +157,7 @@ function main {
   export OVERRIDE_release="${FLAGS_release}"
   export OVERRIDE_branch="${FLAGS_branch}"
   export OVERRIDE_failhook="${pth_failhook}"
+  export OVERRIDE_fast="${FLAGS_fast}"
 
   if ! (build_train "$@"); then
     if [[ -s "$pth_failhook" ]]; then
