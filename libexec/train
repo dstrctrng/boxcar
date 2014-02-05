@@ -62,7 +62,7 @@ function refresh {
     return "$err_pipe"
   fi
 
-  if [[ "$FLAGS_fast" = "$FLAGS_true" ]]; then
+  if [[ "$FLAGS_fast" = "$FLAGS_TRUE" ]]; then
     vagrant box add $nm_box $FLAGS_builddir/$nm_output.box
   fi
 
