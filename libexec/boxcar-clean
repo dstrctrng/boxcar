@@ -92,7 +92,7 @@ __EOF
   for t in /etc/init/tty*.conf; do 
     echo manual > $override
     cp -f $override ${t%.conf}.override
-    stop ${t%.conf} || :
+    stop $(basename $t .conf) || true
   done
   set -f
 
