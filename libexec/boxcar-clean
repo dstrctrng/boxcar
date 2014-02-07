@@ -73,8 +73,8 @@ __EOF
 
   cat > $tmp_cloud  << __EOF
 #cloud-config
-
 disable_root: 0
+apt_pipelining: 4
 __EOF
   sudo install -o root -g root -m 0600 $tmp_cloud /var/lib/cloud/seed/nocloud/user-data
 
