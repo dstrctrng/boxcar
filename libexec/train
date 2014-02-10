@@ -30,8 +30,6 @@ function refresh {
   local nm_input="$1"; shift
   local nm_output="$1"; shift
 
-  local ssh_username="ubuntu"
-
   local nm_box="$nm_output"
   if [[ "$nm_output" != "$FLAGS_release" ]]; then
     nm_box="${FLAGS_release}-${nm_box}"
@@ -55,7 +53,8 @@ function refresh {
     --boxname $nm_input_box \
     --release_dir $FLAGS_builddir/${nm_output} \
     --output $FLAGS_builddir/$nm_output.box \
-    --ssh_username "$ssh_username" \
+    --username "$FLAGS_username" \
+    --address "$FLAGS_address" \
     "$@" 2>&1 | tee $FLAGS_builddir/$nm_output.log
   local err_pipe="$PIPESTATUS"
   if [[ "$err_pipe" != 0 ]]; then
@@ -102,10 +101,6 @@ function build_boxcars {
 }
 
 function build_train {
-  if [[ -f "${SSH_AGENT_FILE:-}" ]]; then
-    source "${SSH_AGENT_FILE}"
-  fi
-
   mark_output
   mark_log "${FLAGS_release}-${FLAGS_provider}"
 
@@ -158,6 +153,8 @@ function main {
   export OVERRIDE_branch="${FLAGS_branch}"
   export OVERRIDE_failhook="${pth_failhook}"
   export OVERRIDE_fast="${FLAGS_fast}"
+  export OVERRIDE_username="${FLAGS_username}"
+  export OVERRIDE_address="${FLAGS_address}"
 
   if ! (build_train "$@"); then
     if [[ -s "$pth_failhook" ]]; then

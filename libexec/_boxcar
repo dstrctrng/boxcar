@@ -98,7 +98,7 @@ function configure_remote_bootstrap {
 }
 
 function configure_remote_aptitude {
-  echo 'Acquire::http { Proxy "http://127.0.0.1:55556"; };' | ssh -F "$pth_ssh_config" default sudo tee /etc/apt/apt.conf.d/01proxy 
+  echo 'Acquire::http { Proxy "http://127.0.0.1:55556"; };' | ssh -F "$pth_ssh_config" default sudo tee /etc/apt/apt.conf.d/01proxy || true
 }
 
 function adjust_build_phase {
@@ -156,7 +156,14 @@ function custom_hook {
   local username="$1"; shift
   local nm_bootstrap="$(basename "$pth_bootstrap")"
 
-  configure_root_ssh
+  local ubuntu="$FLAGS_TRUE"
+  if [[ "(ssh -F $pth_ssh_config uname -s)" != "Linux" ]]; then
+    ubuntu="$FLAGS_FALSE"
+  fi
+
+  if [[ "$username" = '@root' ]]; then
+    configure_root_ssh
+  fi
   configure_remote_bootstrap "$pth_bootstrap" "$username"
 
   local cache_loaders=""
@@ -167,12 +174,16 @@ function custom_hook {
   fi
 
   if [[ -f "$PORT_PROXY_FILE" ]]; then
-    configure_remote_aptitude
+    if [[ "$ubuntu" = "$FLAGS_TRUE" ]]; then
+      configure_remote_aptitude
+    fi
     cache_loaders="$cache_loaders ./.boxcar/with-http-cache"
   fi
 
-  ssh -F "$pth_ssh_config" default sudo atrm $(ssh -F "$pth_ssh_config" default sudo atq | awk '{print $1}') 2>&- > /dev/null || true
-  ssh -F "$pth_ssh_config" default 'echo poweroff | sudo at now + 50 minutes'
+  if [[ "$ubuntu" = "$FLAGS_TRUE" ]]; then
+    ssh -F "$pth_ssh_config" default sudo atrm $(ssh -F "$pth_ssh_config" default sudo atq | awk '{print $1}') 2>&- > /dev/null || true
+    ssh -F "$pth_ssh_config" default 'echo poweroff | sudo at now + 50 minutes'
+  fi
 
   fuglet "$nm_bootstrap"
 
@@ -193,7 +204,9 @@ function custom_hook {
   if ssh -F "$pth_ssh_config" -A ${username}default "exec env BUILD_IMAGE_PHASE=$BUILD_IMAGE_PHASE $cache_loaders ./$nm_bootstrap"; then
     failed=$?
     logger_info "finished $nm_bootstrap"
-    ssh -F "$pth_ssh_config" default sudo env LANG=C rm -vf /etc/apt/apt.conf.d/01proxy /var/run/reboot-required.pkgs /var/run/reboot-required
+    if [[ "$ubuntu" = "$FLAGS_TRUE" ]]; then
+      ssh -F "$pth_ssh_config" default sudo env LANG=C rm -vf /etc/apt/apt.conf.d/01proxy /var/run/reboot-required.pkgs /var/run/reboot-required
+    fi
     ssh -F "$pth_ssh_config" ${username}default env LANG=C rm -vfr "./$nm_bootstrap" ./.boxcar
     ssh -F "$pth_ssh_config" default pkill sleep 2>&- || true
   else
@@ -206,7 +219,9 @@ function custom_hook {
     rsync -ia "$pth_ssh_config" "$save_config"
   fi
 
-  ssh -F "$pth_ssh_config" default sudo atrm $(ssh -F "$pth_ssh_config" default sudo atq | awk '{print $1}') || true
+  if [[ "$ubuntu" = "$FLAGS_TRUE" ]]; then
+    ssh -F "$pth_ssh_config" default sudo atrm $(ssh -F "$pth_ssh_config" default sudo atq | awk '{print $1}') || true
+  fi
 
   if [[ "$failed" != 0 ]]; then
     fuglet "exit code: $failed"

@@ -1,13 +1,7 @@
 #!/bin/bash
 
 #/ NAME
-#/     build docker - builds train with docker (shell provider)
-#/
-#/ SYNOPSIS
-#/   bin/build docker
-#/
-#/ EXAMPLES
-#/     $ bin/build docker
+#/     train static - implements static provider for boxcar
 
 # figure out the project root under which bin, lib live
 shome="$(cd -P -- "$(dirname -- "$BASH_SOURCE")/.." && pwd -P)"
@@ -17,44 +11,24 @@ source "$shome/libexec/_jason"
 require boxcar
 require boxcar_opt
 
-DEFINE_string 'vprovider' 'docker' 'Vagrant provider'
+DEFINE_string 'vprovider' 'static' 'Vagrant provider'
 
 function until_vagrant {
-  logger_info "waiting for $@"
-
-  while true; do
-    local status="$(instance_status)"
-
-    local wanted
-    for wanted in "$@"; do
-      if [[ "$status" = "$wanted" ]]; then
-        break 2
-      fi
-    done
-    echo -n "."
-    sleep 5
-  done
-
-  echo
+  true
 }
 
 function instance_status {
   if [[ ! -f "$FLAGS_release_dir/.vagrant/machines/default/${FLAGS_vprovider}/id" ]]; then
     echo "null"
+  else 
+    echo "running"
   fi
-
-  id_instance="$(cat $FLAGS_release_dir/.vagrant/machines/default/${FLAGS_vprovider}/id)"
-  docker inspect "$id_instance" | grep "Running" | awk '{print $2}' | cut -d, -f1
 }
 
 function conf_vagrant {
   local nm_box="$1"; shift
 
   local tmp_dna="$(mktemp -t XXXXXXXXX)"
-  local privileged="/sbin/init.orig"
-  if [[ -n "$DOCKER_PRIVILEGED" ]]; then
-    privileged="${DOCKER_CMD:-bash -c 'mkdir -p /var/run/sshd; exec /usr/sbin/sshd -D'}"
-  fi
 
   cat > "$tmp_dna" <<EOF
   { 
@@ -63,7 +37,7 @@ function conf_vagrant {
       "box": "${nm_box}",
       "release_dir": "$FLAGS_release_dir",
       "ssh_username": "$FLAGS_username",
-      "shell_args": "$privileged"
+      "image": "$FLAGS_address"
     }
   }
 EOF
@@ -92,14 +66,9 @@ function bundle_vagrant {
   local base_image="$(basename $FLAGS_output .box | perl -pe 's{:(\w+)}{\($1\)}g')"
   local id_instance="$(cat $FLAGS_release_dir/.vagrant/machines/default/${FLAGS_vprovider}/id)"
 
-  logger_info "creating image ${FLAGS_release}:${base_image} from instance $id_instance"
+  logger_info "creating image ${base_image} from address $id_instance"
 
-  docker stop $id_instance
-  local id_image="$(docker commit $id_instance $FLAGS_release:$base_image)"
-  if [[ -z "$id_image" ]]; then
-    logger_fatal "could not retrieve image id"
-    return 1
-  fi
+  local id_image="$FLAGS_address"
 
   (cd $FLAGS_release_dir && vagrant destroy -f)
 
@@ -130,7 +99,7 @@ function demo_vagrant {
   (cd $FLAGS_release_dir && vagrant up --provider ${FLAGS_vprovider})
   until_vagrant "true"
   local id_instance="$(cat $FLAGS_release_dir/.vagrant/machines/default/${FLAGS_vprovider}/id)"
-  until_port_open "$(docker inspect $id_instance | awk '$1 ~ /IPAddress/ { split($2,ip,"\""); print ip[2] }')" 22
+  until_port_open "$FLAGS_address" 22
   demo_in_vagrant "$@"
 }
 

@@ -124,7 +124,7 @@ function conf_vagrant {
       "secret_access_key": "$AWS_SECRET_KEY",
       "keypair_name": "$nm_keypair",
       "instance_type": "m1.large",
-      "ssh_username": "$FLAGS_ssh_username",
+      "ssh_username": "$FLAGS_username",
       "ssh_private_key_path": "$pth_private_key_path",
       "root_volume_size": "$FLAGS_rootsize"
     }

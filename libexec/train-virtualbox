@@ -61,7 +61,7 @@ function conf_vagrant {
     "vagrant": { 
       "box": "$nm_box",
       "release_dir": "$FLAGS_release_dir",
-      "ssh_username": "$FLAGS_ssh_username"
+      "ssh_username": "$FLAGS_username"
     }
   }
 EOF

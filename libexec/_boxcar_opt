@@ -23,7 +23,8 @@ DEFINE_string 'branch' "master" 'Generic label'
 DEFINE_string "output" "" "Where to bundle the vagrant box"
 DEFINE_boolean "fast" "$FLAGS_FALSE" "Dont run slow ops like exports"
 DEFINE_string "release_dir" "$BOXCAR/vagrant-$(TZ=UTC date +%Y%m%d-%H%M-$$)" "Vagrant instance workarea"
-DEFINE_string "ssh_username" "ubuntu" "Vagrant ssh username"
+DEFINE_string "username" "ubuntu" "Vagrant ssh username"
+DEFINE_string "address" "NA" "Script defined generic address"
 
 DEFINE_string builddir "$BOXCAR/build" "Build directory"
 DEFINE_string cachedir "$BOXCAR/build" "Cache directory"

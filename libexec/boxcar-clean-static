@@ -1,13 +1,10 @@
 #!/bin/bash
 
 #/ NAME
-#/     boxcar-false - empty boxcar script to test failed builds
-#/
-#/ SYNOPSIS
-#/     called by train
+#/     boxcar-clean-static - static specific boxcar
 
 function remote_install {
-  false
+  set -exfu; cd
 }
 
 if [[ "$#" = 0 ]]; then
@@ -27,11 +24,8 @@ bootstrap="$BASH_SOURCE"
 
 # entry point
 function main {
-  if [[ "$BUILD_IMAGE_PHASE" = "root" ]]; then
-    "standard_${BUILD_IMAGE_PHASE}_hook" "$bootstrap" "$@"
-  else
-    standard_hook "$bootstrap" "$@"
-  fi
+  local pth_ssh_config="$1"; shift
+  standard_root_hook "$bootstrap" "$pth_ssh_config" "$@"
 }
 
 require sub "$BASH_SOURCE" "$@"

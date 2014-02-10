@@ -114,7 +114,7 @@ function conf_vagrant {
     "vagrant": { 
       "box": "${nm_box}",
       "release_dir": "$FLAGS_release_dir",
-      "ssh_username": "$FLAGS_ssh_username",
+      "ssh_username": "$FLAGS_username",
       "shell_args": "${FLAGS_region} $FLAGS_instype $nm_keypair ${FLAGS_ebssize}",
       "ssh_private_key_path": "$pth_private_key_path"
     }
