@@ -7,6 +7,13 @@
 #/     called by train
 
 function remote_install {
+  set -x
+
+  env; echo
+
+  id -a
+  uname -a
+  pwd
   false
 }
 
