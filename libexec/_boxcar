@@ -195,44 +195,39 @@ function custom_hook {
 
   fuglet "$nm_bootstrap"
 
+  local sleepers=
   if [[ -n "${cache_loaders}" ]]; then
     if [[ -f "$PORT_SSHD_FILE" ]]; then
       logger_info "starting git cache"
-      ssh -F "$pth_ssh_config" -R 55555:127.0.0.1:$(cat $PORT_SSHD_FILE) -f default sleep 86400 || true &
+      ssh -F "$pth_ssh_config" -R 55555:127.0.0.1:$(cat $PORT_SSHD_FILE) default sleep 86400 &
+      sleepers="$sleepers $!"
     fi
 
     if [[ -f "$PORT_PROXY_FILE" ]]; then
       logger_info "starting http cache/proxy"
-      ssh -F "$pth_ssh_config" -R 55556:127.0.0.1:$(cat $PORT_PROXY_FILE) -f default sleep 86400 || true &
+      ssh -F "$pth_ssh_config" -R 55556:127.0.0.1:$(cat $PORT_PROXY_FILE) default sleep 86400 &
+      sleepers="$sleepers $!"
     fi
   fi
 
   logger_info "starting $nm_bootstrap"
-  local failed
-  if ssh -F "$pth_ssh_config" -A ${username}default "exec env BUILD_IMAGE_PHASE=$BUILD_IMAGE_PHASE $cache_loaders .boxcar/anchor ${FLAGS_anchor} $nm_bootstrap\""; then
-    failed=$?
-    logger_info "finished $nm_bootstrap"
+  local failed=0
+  ssh -F "$pth_ssh_config" -A ${username}default "exec env BUILD_IMAGE_PHASE=$BUILD_IMAGE_PHASE $cache_loaders .boxcar/anchor ${FLAGS_anchor} $nm_bootstrap" || failed="$?"
+  if [[ -z "$failed" ]]; then
+    logger_info "success! $nm_bootstrap"
     if [[ "$ubuntu" = "$FLAGS_TRUE" ]]; then
       ssh -F "$pth_ssh_config" default sudo env LANG=C rm -vf /etc/apt/apt.conf.d/01proxy /var/run/reboot-required.pkgs /var/run/reboot-required
     fi
     ssh -F "$pth_ssh_config" ${username}default env LANG=C rm -vfr ./.boxcar
-    ssh -F "$pth_ssh_config" default pkill sleep 2>&- || true
+    if [[ -n "$sleepers" ]]; then
+      kill -9 $sleepers
+    fi
   else
-    failed=$?
-
-    ssh -F "$pth_ssh_config" default pkill sleep 2>&- || true
+    fuglet "exit code: $failed"
 
     logger_fatal "failed! $nm_bootstrap"
     local save_config="$(mktemp -t XXXXXX)"
     rsync -ia "$pth_ssh_config" "$save_config"
-  fi
-
-  if [[ "$ubuntu" = "$FLAGS_TRUE" ]]; then
-    ssh -F "$pth_ssh_config" default sudo atrm $(ssh -F "$pth_ssh_config" default sudo atq | awk '{print $1}') || true
-  fi
-
-  if [[ "$failed" != 0 ]]; then
-    fuglet "exit code: $failed"
 
     if [[ -n "${cache_loaders}" ]]; then
       if [[ -f "$PORT_SSHD_FILE" ]]; then
@@ -257,6 +252,10 @@ function custom_hook {
     cat >> $OVERRIDE_failhook << ____EOF
     (${agent_loader:+${agent_loader}; }ssh -F "$save_config" -t ${username}default "exec env BUILD_IMAGE_PHASE=$BUILD_IMAGE_PHASE ${cache_loaders:+${cache_loaders} }bash -l")
 ____EOF
+  fi
+
+  if [[ "$ubuntu" = "$FLAGS_TRUE" ]]; then
+    ssh -F "$pth_ssh_config" default sudo atrm $(ssh -F "$pth_ssh_config" default sudo atq | awk '{print $1}') || true
   fi
 
   return $failed

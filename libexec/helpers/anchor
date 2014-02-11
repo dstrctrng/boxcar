@@ -2,8 +2,8 @@
 
 set -efu
 
-old=$(pwd)
-cd "$1"
+old="$(pwd)"
+cd "$1"; shift
 
 script="$1"; shift
 exec "$old/$script" "$@"
