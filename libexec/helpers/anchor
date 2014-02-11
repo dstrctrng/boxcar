@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+set -efu
+
+old=$(pwd)
+cd "$1"
+
+script="$1"; shift
+exec "$old/$script" "$@"

@@ -55,6 +55,7 @@ function refresh {
     --output $FLAGS_builddir/$nm_output.box \
     --username "$FLAGS_username" \
     --address "$FLAGS_address" \
+    --anchor "$FLAGS_anchor" \
     "$@" 2>&1 | tee $FLAGS_builddir/$nm_output.log
   local err_pipe="$PIPESTATUS"
   if [[ "$err_pipe" != 0 ]]; then
@@ -155,6 +156,7 @@ function main {
   export OVERRIDE_fast="${FLAGS_fast}"
   export OVERRIDE_username="${FLAGS_username}"
   export OVERRIDE_address="${FLAGS_address}"
+  export OVERRIDE_anchor="${FLAGS_anchor}"
 
   if ! (build_train "$@"); then
     if [[ -s "$pth_failhook" ]]; then

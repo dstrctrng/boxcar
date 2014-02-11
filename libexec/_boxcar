@@ -10,11 +10,12 @@ fi
 
 export BOXCAR
 
+boxcar_shome="$(unset CDPATH; cd -P -- "$(dirname -- "${BASH_SOURCE}")/.." && pwd -P)"
+
 if [[ -z "${ORIGINAL_VBOX_MANAGE:-}" ]]; then
   ORIGINAL_VBOX_MANAGE="$(which VBoxManage 2>&- || true)"
   if [[ -x "${ORIGINAL_VBOX_MANAGE}" ]]; then
     export ORIGINAL_VBOX_MANAGE
-    boxcar_shome="$(unset CDPATH; cd -P -- "$(dirname -- "${BASH_SOURCE}")/.." && pwd -P)"
     PATH="$boxcar_shome/libexec/virtualbox:$PATH"
   fi
 fi
@@ -94,11 +95,16 @@ function configure_root_ssh {
 function configure_remote_bootstrap {
   local pth_bootstrap="$1"; shift
   local username="$1"; shift
-  rsync -ia -e "ssh -F '$pth_ssh_config'" "$pth_bootstrap" "$username"default:
+  rsync -ia -e "ssh -F '$pth_ssh_config'" "$pth_bootstrap" "$username"default:.boxcar/
 }
 
 function configure_remote_aptitude {
   echo 'Acquire::http { Proxy "http://127.0.0.1:55556"; };' | ssh -F "$pth_ssh_config" default sudo tee /etc/apt/apt.conf.d/01proxy || true
+}
+
+
+function configure_remote_anchor {
+  rsync -ia -e "ssh -F '$pth_ssh_config'" "$boxcar_shome/libexec/helpers/anchor" "$username"default:.boxcar/
 }
 
 function adjust_build_phase {
@@ -180,6 +186,8 @@ function custom_hook {
     cache_loaders="$cache_loaders ./.boxcar/with-http-cache"
   fi
 
+  configure_remote_anchor
+
   if [[ "$ubuntu" = "$FLAGS_TRUE" ]]; then
     ssh -F "$pth_ssh_config" default sudo atrm $(ssh -F "$pth_ssh_config" default sudo atq | awk '{print $1}') 2>&- > /dev/null || true
     ssh -F "$pth_ssh_config" default 'echo poweroff | sudo at now + 50 minutes'
@@ -201,13 +209,13 @@ function custom_hook {
 
   logger_info "starting $nm_bootstrap"
   local failed
-  if ssh -F "$pth_ssh_config" -A ${username}default "exec env BUILD_IMAGE_PHASE=$BUILD_IMAGE_PHASE $cache_loaders ./$nm_bootstrap"; then
+  if ssh -F "$pth_ssh_config" -A ${username}default "exec env BUILD_IMAGE_PHASE=$BUILD_IMAGE_PHASE $cache_loaders .boxcar/anchor ${FLAGS_anchor} $nm_bootstrap\""; then
     failed=$?
     logger_info "finished $nm_bootstrap"
     if [[ "$ubuntu" = "$FLAGS_TRUE" ]]; then
       ssh -F "$pth_ssh_config" default sudo env LANG=C rm -vf /etc/apt/apt.conf.d/01proxy /var/run/reboot-required.pkgs /var/run/reboot-required
     fi
-    ssh -F "$pth_ssh_config" ${username}default env LANG=C rm -vfr "./$nm_bootstrap" ./.boxcar
+    ssh -F "$pth_ssh_config" ${username}default env LANG=C rm -vfr ./.boxcar
     ssh -F "$pth_ssh_config" default pkill sleep 2>&- || true
   else
     failed=$?
