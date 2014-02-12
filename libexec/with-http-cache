@@ -17,4 +17,6 @@ if [[ "$tries" == 5 ]]; then
   exit 1
 fi
 
+export APT_CONF="$HOME/.boxcar/apt.conf"
+
 exec "$@"

@@ -99,7 +99,7 @@ function configure_remote_bootstrap {
 }
 
 function configure_remote_aptitude {
-  echo 'Acquire::http { Proxy "http://127.0.0.1:55556"; };' | ssh -F "$pth_ssh_config" default sudo tee /etc/apt/apt.conf.d/01proxy || true
+  rsync -ia -e "ssh -F '$pth_ssh_config'" "$boxcar_shome/libexec/helpers/apt.conf" "$username"default:.boxcar/
 }
 
 
