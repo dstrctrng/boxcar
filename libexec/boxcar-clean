@@ -7,7 +7,14 @@
 #/     seed-rvm.sh ssh_config rubies...
 
 function remote_install {
-  set -exfu; cd
+  set -exfu
+
+  if [[ "$(whoami)" != "root" ]]; then
+    sudo install -o root -g root -m 0700 -d ~root/.ssh
+    sudo install -o root -g root -m 0600 ~ubuntu/.ssh/authorized_keys ~root/.ssh/authorized_keys
+    sudo perl -pe 's{^(disable_root):.*}{$1: 0}' -i /etc/cloud/cloud.cfg
+    return
+  fi
 
   export DEBIAN_FRONTEND="noninteractive"
 
@@ -148,14 +155,8 @@ bootstrap="$BASH_SOURCE"
 # entry point
 function main {
   local pth_ssh_config="$1"
-  local ssh="ssh -F $pth_ssh_config"
 
-  # enable ubuntu user for vagrant boxes
-  if $ssh default id -a vagrant 2>&-; then
-    $ssh default sudo install -o ubuntu -g ubuntu -m 0700 -d \~ubuntu/.ssh
-    $ssh default sudo install -o ubuntu -g ubuntu -m 0600 \~vagrant/.ssh/authorized_keys \~ubuntu/.ssh/authorized_keys
-  fi
-
+  standard_hook "$bootstrap" "$@"
   standard_root_hook "$bootstrap" "$@"
 }
 
