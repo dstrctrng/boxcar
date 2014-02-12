@@ -161,7 +161,7 @@ function continue_image_hook {
   rm -f "$tmp_meh"
   echo
 
-  ssh -F "$pth_ssh_config" default mkdir -p ${FLAGS_anchor}
+  ssh -F "$pth_ssh_config" default mkdir -p ${FLAGS_anchor} || ssh -F "$pth_ssh_config" default sudo mkdir -p ${FLAGS_anchor}
 
   exec $pth_hook "$pth_ssh_config" "$@"
 }
