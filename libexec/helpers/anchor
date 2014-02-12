@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -efu
+set -efux
 
 old="$(pwd)"
 cd "$1"; shift
