@@ -73,38 +73,29 @@ function build_vagrant {
 }
 
 function configure_remote_git_cache {
-  local username="$1"; shift
-
   local tmp_git_env="$(mktemp -t XXXXXXXXX)"
   printf "export GIT_USER=%s\n" "${GIT_USER:-$LOGNAME}" >> "$tmp_git_env"
   printf "export GIT_PORT=%s\n" "${GIT_PORT:-55555}" >> "$tmp_git_env"
-  ssh -F $pth_ssh_config "$username"default mkdir -p .boxcar
+  ssh -F $pth_ssh_config default mkdir -p .boxcar
   set +f
-  rsync -e "ssh -F $pth_ssh_config" $BOXCAR_GHOME/libexec/with-git-cache $BOXCAR_GHOME/libexec/with-http-cache $BOXCAR_GHOME/libexec/sbin/* "$username"default:.boxcar/
+  rsync -e "ssh -F $pth_ssh_config" $BOXCAR_GHOME/libexec/with-git-cache $BOXCAR_GHOME/libexec/with-http-cache $BOXCAR_GHOME/libexec/sbin/* default:.boxcar/
   set -f
-  rsync -e "ssh -F $pth_ssh_config" $tmp_git_env "$username"default:.boxcar/env
+  rsync -e "ssh -F $pth_ssh_config" $tmp_git_env default:.boxcar/env
   rm -f $tmp_git_env
-}
-
-function configure_root_ssh {
-  ssh -F $pth_ssh_config default sudo env REMOTE='$(uname -n)' perl -pe "s\{localhost\\s*\?.\*\}\{localhost\ \\\$ENV\{\"REMOTE\"\}\}" -i /etc/hosts
-  ssh -F $pth_ssh_config default sudo install -o root -g root -m 0700 -d \~root/.ssh
-  ssh -F $pth_ssh_config default sudo install -o root -g root -m 0600 \~/.ssh/authorized_keys \~root/.ssh/authorized_keys
 }
 
 function configure_remote_bootstrap {
   local pth_bootstrap="$1"; shift
-  local username="$1"; shift
-  rsync -ia -e "ssh -F '$pth_ssh_config'" "$pth_bootstrap" "$username"default:.boxcar/
+  rsync -ia -e "ssh -F '$pth_ssh_config'" "$pth_bootstrap" default:.boxcar/
 }
 
 function configure_remote_aptitude {
-  rsync -ia -e "ssh -F '$pth_ssh_config'" "$boxcar_shome/libexec/helpers/apt.conf" "$username"default:.boxcar/
+  rsync -ia -e "ssh -F '$pth_ssh_config'" "$boxcar_shome/libexec/helpers/apt.conf" default:.boxcar/
 }
 
 
 function configure_remote_anchor {
-  rsync -ia -e "ssh -F '$pth_ssh_config'" "$boxcar_shome/libexec/helpers/anchor" "$username"default:.boxcar/
+  rsync -ia -e "ssh -F '$pth_ssh_config'" "$boxcar_shome/libexec/helpers/anchor" default:.boxcar/
 }
 
 function adjust_build_phase {
@@ -169,7 +160,7 @@ function continue_image_hook {
 function custom_hook {
   local pth_bootstrap="$1"; shift
   local pth_ssh_config="$1"; shift
-  local username="$1"; shift
+  local root_loader="$1"; shift
   local nm_bootstrap="$(basename "$pth_bootstrap")"
 
   local ubuntu="$FLAGS_TRUE"
@@ -177,15 +168,12 @@ function custom_hook {
     ubuntu="$FLAGS_FALSE"
   fi
 
-  if [[ "$username" = '@root' ]]; then
-    configure_root_ssh
-  fi
-  configure_remote_bootstrap "$pth_bootstrap" "$username"
+  configure_remote_bootstrap "$pth_bootstrap"
 
   local cache_loaders=""
 
   if [[ -f "$PORT_SSHD_FILE" ]]; then
-    configure_remote_git_cache "$username"
+    configure_remote_git_cache
     cache_loaders="$cache_loaders ./.boxcar/with-git-cache"
   fi
 
@@ -222,7 +210,8 @@ function custom_hook {
 
   logger_info "starting $nm_bootstrap"
   local failed=0
-  ssh -F "$pth_ssh_config" -A ${username}default "exec env BUILD_IMAGE_PHASE=$BUILD_IMAGE_PHASE $cache_loaders .boxcar/anchor ${OVERRIDE_anchor} .boxcar/$nm_bootstrap" || failed="$?"
+  echo "REMOTE: ssh -F $pth_ssh_config -A default exec ${root_loader:+${root_loader} }env BUILD_IMAGE_PHASE=$BUILD_IMAGE_PHASE $cache_loaders .boxcar/anchor ${OVERRIDE_anchor} .boxcar/$nm_bootstrap"
+  ssh -F "$pth_ssh_config" -A default "exec ${root_loader:+${root_loader} }env BUILD_IMAGE_PHASE=$BUILD_IMAGE_PHASE $cache_loaders .boxcar/anchor ${OVERRIDE_anchor} .boxcar/$nm_bootstrap" || failed="$?"
   if [[ "$failed" = 0 ]]; then
     logger_info "success! $nm_bootstrap"
 
@@ -230,7 +219,7 @@ function custom_hook {
       ssh -F "$pth_ssh_config" default sudo env LANG=C rm -vf /etc/apt/apt.conf.d/01proxy /var/run/reboot-required.pkgs /var/run/reboot-required
     fi
 
-    ssh -F "$pth_ssh_config" ${username}default env LANG=C rm -vfr ./.boxcar
+    ssh -F "$pth_ssh_config" default env LANG=C rm -vfr ./.boxcar
   else
     fuglet "exit code: $failed"
 
@@ -248,9 +237,6 @@ function custom_hook {
       fi
     fi
 
-    if [[ -n "${username:-}" ]]; then
-      echo "  User $username" >> "$save_config"
-    fi
     echo "  ForwardAgent yes" >> "$save_config"
     
     local agent_loader=""
@@ -259,7 +245,7 @@ function custom_hook {
     fi
 
     cat >> $OVERRIDE_failhook << ____EOF
-    (${agent_loader:+${agent_loader}; }ssh -F "$save_config" -t ${username}default "exec env BUILD_IMAGE_PHASE=$BUILD_IMAGE_PHASE ${cache_loaders:+${cache_loaders} }bash -l")
+    (${agent_loader:+${agent_loader}; }ssh -F "$save_config" -t default "exec ${root_loader:+${root_loader} }env BUILD_IMAGE_PHASE=$BUILD_IMAGE_PHASE ${cache_loaders:+${cache_loaders} }bash")
 ____EOF
   fi
 
@@ -286,7 +272,7 @@ function standard_root_hook {
   local pth_bootstrap="$1"; shift
   local pth_ssh_config="$1"; shift
 
-  custom_hook "$pth_bootstrap" "$pth_ssh_config" 'root@' "$@"
+  custom_hook "$pth_bootstrap" "$pth_ssh_config" 'sudo -E' "$@"
   continue_image_hook "$pth_ssh_config" "$@"
 }
 

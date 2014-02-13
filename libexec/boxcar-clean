@@ -9,13 +9,6 @@
 function remote_install {
   set -exfu
 
-  if [[ "$(whoami)" != "root" ]]; then
-    sudo install -o root -g root -m 0700 -d ~root/.ssh
-    sudo install -o root -g root -m 0600 ~ubuntu/.ssh/authorized_keys ~root/.ssh/authorized_keys
-    sudo perl -pe 's{^(disable_root):.*}{$1: 0}' -i /etc/cloud/cloud.cfg
-    return
-  fi
-
   export DEBIAN_FRONTEND="noninteractive"
 
   # complete list of apt repos
@@ -80,7 +73,6 @@ __EOF
 
   cat > $tmp_cloud  << __EOF
 #cloud-config
-disable_root: 0
 apt_pipelining: 4
 __EOF
   sudo install -o root -g root -m 0600 $tmp_cloud /var/lib/cloud/seed/nocloud/user-data
@@ -156,7 +148,6 @@ bootstrap="$BASH_SOURCE"
 function main {
   local pth_ssh_config="$1"
 
-  standard_hook "$bootstrap" "$@"
   standard_root_hook "$bootstrap" "$@"
 }
 
