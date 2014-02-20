@@ -13,13 +13,18 @@ shome="$(unset CDPATH; cd -P -- "$(dirname -- "$BASH_SOURCE")/.." && pwd -P)"
 source "$shome/libexec/_jason"
 
 DEFINE_string "host" "default" "Vagrant hostname"
+DEFINE_boolean "agent" "$FLAGS_TRUE" "Use ssh agent"
 
 # entry point
 function main {
   local tmp_config="$(mktemp -d -t XXXXXX)"
   local d='$'
 
-  vagrant ssh-config "$FLAGS_host" | grep -v IdentitiesOnly > $tmp_config/ssh_config
+  if [[ "$FLAGS_agent" = "$FLAGS_TRUE" ]]; then
+    vagrant ssh-config "$FLAGS_host" | grep -v IdentitiesOnly > $tmp_config/ssh_config
+  else
+    vagrant ssh-config "$FLAGS_host" > $tmp_config/ssh_config
+  fi
 
   local cmd_ssh="$(which ssh)"
 
