@@ -6,6 +6,17 @@ if [[ -x "${ORIGINAL_VBOX_MANAGE:-}" ]]; then
   if [[ -n "${VBOX_MANAGE_LOG:-}" ]]; then
     printf '%s\n' "$ORIGINAL_VBOX_MANAGE $*" >> "$VBOX_MANAGE_LOG"
   fi
+
+  if [[ "$#" != 0 && "$1" = "showvminfo" ]]; then
+    err=0
+    while [[ "$count" -lt 5 ]]; do
+      count="$((count + 1))"
+      if "$ORIGINAL_VBOX_MANAGE" "$@" 2>&- > /dev/null; then
+        break
+      fi
+    done
+  fi
+
   exec "$ORIGINAL_VBOX_MANAGE" "$@"
 fi
 
