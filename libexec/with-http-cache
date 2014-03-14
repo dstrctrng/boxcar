@@ -19,4 +19,6 @@ fi
 
 export APT_CONF="$HOME/.boxcar/apt.conf"
 
+curl -i http://security.ubuntu.com/ubuntu/dists/precise-security/main/source/Sources > /dev/null || true
+
 exec "$@"
