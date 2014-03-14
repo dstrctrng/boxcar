@@ -86,11 +86,9 @@ __EOF
   sudo rm -f /var/lib/cloud/seed/nocloud/meta-data
 
   # disable tty
-  local override="$(mktemp -t XXXXXX)"
   set +f
-  for t in /etc/init/tty*.conf; do 
-    echo manual > $override
-    cp -f $override ${t%.conf}.override
+  for t in /etc/init/tty*.conf /etc/init/console.conf; do 
+    echo manual > ${t%.conf}.override
     stop $(basename $t .conf) || true
   done
   set -f
