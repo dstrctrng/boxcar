@@ -8,13 +8,25 @@ if [[ -x "${ORIGINAL_VBOX_MANAGE:-}" ]]; then
   fi
 
   if [[ "$#" != 0 && "$1" = "showvminfo" ]]; then
+    tmp_stdout="$(mktemp -t XXXXXX)"
+    tmp_stderr="$(mktemp -t XXXXXX)"
+
     count=0
-    while [[ "$count" -lt 5 ]]; do
+    while [[ "$count" -lt 30 ]]; do
       count="$((count + 1))"
-      if "$ORIGINAL_VBOX_MANAGE" "$@" 2>&- > /dev/null; then
-        break
+      if [[ -n "${VBOX_MANAGE_LOG:-}" ]]; then
+        printf '%s: %s\n' "$count" "$ORIGINAL_VBOX_MANAGE $*" >> "$VBOX_MANAGE_LOG"
       fi
+      if ! "$ORIGINAL_VBOX_MANAGE" "$@" 2>$tmp_stderr >$tmp_stdout; then
+        if egrep -q "not ready" "$tmp_stderr"; then
+          continue
+        fi
+      fi
+
+      break
     done
+
+    rm -f $tmp_stderr $tmp_stdout
   fi
 
   exec "$ORIGINAL_VBOX_MANAGE" "$@"
