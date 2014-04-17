@@ -26,6 +26,7 @@ DEFINE_string "release_dir" "$BOXCAR/vagrant-$(TZ=UTC date +%Y%m%d-%H%M-$$)" "Va
 DEFINE_string "username" "ubuntu" "Vagrant ssh username"
 DEFINE_string "address" "NA" "Script defined generic address"
 DEFINE_string "anchor" "." "Initial working directory"
+DEFINE_string "apps" "" "List of apps to install"
 
 DEFINE_string builddir "$BOXCAR/build" "Build directory"
 DEFINE_string cachedir "$BOXCAR/build" "Cache directory"

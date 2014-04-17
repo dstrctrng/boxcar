@@ -157,6 +157,7 @@ function main {
   export OVERRIDE_username="${FLAGS_username}"
   export OVERRIDE_address="${FLAGS_address}"
   export OVERRIDE_anchor="${FLAGS_anchor}"
+  export OVERRIDE_apps="${FLAGS_apps}"
 
   if ! (build_train "$@"); then
     if [[ -s "$pth_failhook" ]]; then
