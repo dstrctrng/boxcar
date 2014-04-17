@@ -208,6 +208,12 @@ function custom_hook {
     fi
   fi
 
+  if [[ -f "$PORT_SSHD_LOCAL" ]]; then
+    logger_info "starting ssh forward"
+    ssh -F "$pth_ssh_config" -o ExitOnForwardFailure=yes -L ${PORT_SSHD_LOCAL}:127.0.0.1:22 default sleep 86400 &
+    sleepers="$sleepers $!"
+  fi
+
   logger_info "starting $nm_bootstrap"
   local failed=0
   echo "REMOTE: ssh -F $pth_ssh_config -A default exec ${root_loader:+${root_loader} }env BUILD_IMAGE_PHASE=$BUILD_IMAGE_PHASE BUILD_BRANCH=${OVERRIDE_branch} $cache_loaders .boxcar/anchor ${OVERRIDE_anchor} .boxcar/$nm_bootstrap"
