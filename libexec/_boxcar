@@ -208,7 +208,7 @@ function custom_hook {
     fi
   fi
 
-  if [[ -f "$PORT_SSHD_LOCAL" ]]; then
+  if [[ -n "${PORT_SSHD_LOCAL:-}" ]]; then
     logger_info "starting ssh forward"
     ssh -F "$pth_ssh_config" -o ExitOnForwardFailure=yes -L ${PORT_SSHD_LOCAL}:127.0.0.1:22 default sleep 86400 &
     sleepers="$sleepers $!"
