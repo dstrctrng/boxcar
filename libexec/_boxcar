@@ -197,12 +197,14 @@ function custom_hook {
   if [[ -n "${cache_loaders}" ]]; then
     if [[ -f "$PORT_SSHD_FILE" ]]; then
       logger_info "starting git cache"
+      nc -z -v localhost $(cat $PORT_SSHD_FILE)
       ssh -F "$pth_ssh_config" -o ExitOnForwardFailure=yes -R 55555:127.0.0.1:$(cat $PORT_SSHD_FILE) default sleep 86400 &
       sleepers="$sleepers $!"
     fi
 
     if [[ -f "$PORT_PROXY_FILE" ]]; then
       logger_info "starting http cache/proxy"
+      nc -z -v localhost $(cat $PORT_PROXY_FILE)
       ssh -F "$pth_ssh_config" -o ExitOnForwardFailure=yes -R 55556:127.0.0.1:$(cat $PORT_PROXY_FILE) default sleep 86400 &
       sleepers="$sleepers $!"
     fi
@@ -212,6 +214,13 @@ function custom_hook {
     logger_info "starting ssh forward"
     ssh -F "$pth_ssh_config" -o ExitOnForwardFailure=yes -L ${PORT_SSHD_LOCAL}:127.0.0.1:22 default sleep 86400 &
     sleepers="$sleepers $!"
+
+    while true; do
+      if nc -z -v localhost $PORT_SSHD_LOCAL; then
+        break
+      fi
+      sleep 1
+    done
   fi
 
   logger_info "starting $nm_bootstrap"
