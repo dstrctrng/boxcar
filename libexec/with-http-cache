@@ -19,6 +19,4 @@ fi
 
 export APT_CONF="$HOME/.boxcar/apt.conf"
 
-curl -i http://google.com > /dev/null || true
-
 exec "$@"
