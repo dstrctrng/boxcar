@@ -56,6 +56,7 @@ function refresh {
     --username "$FLAGS_username" \
     --address "$FLAGS_address" \
     --anchor "$FLAGS_anchor" \
+    --apps "$FLAGS_apps" \
     "$@" 2>&1 | tee $FLAGS_builddir/$nm_output.log
   local err_pipe="$PIPESTATUS"
   if [[ "$err_pipe" != 0 ]]; then
