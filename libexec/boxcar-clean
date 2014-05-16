@@ -11,79 +11,10 @@ function remote_install {
 
   export DEBIAN_FRONTEND="noninteractive"
 
+  source /etc/lsb-release
+
   # complete list of apt repos
-  local nm_distro='precise'
-  local d='$'
-  cat > /etc/cloud/templates/sources.list.tmpl << __EOF
-\## Note, this file is written by cloud-init on first boot of an instance
-\## modifications made here will not survive a re-bundle.
-\## if you wish to make changes you can:
-\## a.) add 'apt_preserve_sources_list: true' to /etc/cloud/cloud.cfg
-\##     or do the same in user-data
-\## b.) add sources in /etc/apt/sources.list.d
-\## c.) make changes to template file /etc/cloud/templates/sources.list.tmpl
-\###
-
-\## main
-deb ${d}mirror ${d}codename main
-deb-src ${d}mirror ${d}codename main
-
-\## updates
-deb ${d}mirror ${d}codename-updates main
-deb-src ${d}mirror ${d}codename-updates main
-
-\## universe
-deb ${d}mirror ${d}codename universe
-deb-src ${d}mirror ${d}codename universe
-deb ${d}mirror ${d}codename-updates universe
-deb-src ${d}mirror ${d}codename-updates universe
-
-\## multiverse
-deb ${d}mirror ${d}codename multiverse
-deb-src ${d}mirror ${d}codename multiverse
-deb ${d}mirror ${d}codename-updates multiverse
-deb-src ${d}mirror ${d}codename-updates multiverse
-
-\## backports
-deb ${d}mirror ${d}codename-backports main restricted universe multiverse
-deb-src ${d}mirror ${d}codename-backports main restricted universe multiverse
-
-\## partner
-deb http://archive.canonical.com/ubuntu ${d}codename partner
-deb-src http://archive.canonical.com/ubuntu ${d}codename partner
-
-\## security
-deb http://security.ubuntu.com/ubuntu ${d}codename-security main
-deb-src http://security.ubuntu.com/ubuntu ${d}codename-security main
-deb http://security.ubuntu.com/ubuntu ${d}codename-security universe
-deb-src http://security.ubuntu.com/ubuntu ${d}codename-security universe
-deb http://security.ubuntu.com/ubuntu ${d}codename-security multiverse
-deb-src http://security.ubuntu.com/ubuntu ${d}codename-security multiverse
-__EOF
-
-  # cloud init to enable root and regenerate apt sources.list
-  local tmp_cloud="$(mktemp -t XXXXXX)"
-
-  sudo mkdir -p /var/lib/cloud/seed/nocloud
-
-  cat > /var/lib/cloud/seed/nocloud/meta-data << __EOF
-instance-id: precise-$(date +%s)-$$
-__EOF
-  sudo install -o root -g root -m 0600 $tmp_cloud /var/lib/cloud/seed/nocloud/meta-data
-
-  cat > $tmp_cloud  << __EOF
-#cloud-config
-apt_pipelining: 4
-__EOF
-  sudo install -o root -g root -m 0600 $tmp_cloud /var/lib/cloud/seed/nocloud/user-data
-
-  rm -f $tmp_cloud
-
-  # run and verify cloud init
-  sudo cloud-init start-local || true
-  sudo cloud-init-cfg all config
-  sudo cloud-init-cfg all final
-  sudo rm -f /var/lib/cloud/seed/nocloud/meta-data
+  local nm_distro="$DISTRIB_CODENAME"
 
   # disable tty
   set +f
@@ -97,10 +28,6 @@ __EOF
   aptitude update
   aptitude -y -o Dpkg::Options::=--force-confdef -o Dpkg::Options::=--force-confnew dist-upgrade
   aptitude -y -o Dpkg::Options::=--force-confdef -o Dpkg::Options::=--force-confnew safe-upgrade
-
-  # hwe stacks for updated distro kernel
-  aptitude install -y linux-{generic,tools}-lts-saucy
-  aptitude hold -y linux-{generic,tools}-lts-saucy
 
   # don't upgrade kernel hereafter
   aptitude hold linux-{,{headers,image}-}{generic,server,virtual}

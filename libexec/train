@@ -42,11 +42,8 @@ function refresh {
     nm_input_box="$nm_input"
   fi
 
-  if vagrant box list | awk -v box="$nm_box" -v virt="$FLAGS_provider" '$1 == box && $2 == "(" virt ")" { counter += 1 } END { exit !counter }'; then
-    vagrant box remove $nm_box $FLAGS_provider
-  fi
-
   (cd $FLAGS_builddir/${nm_output} 2>&- && vagrant destroy -f > /dev/null 2>&-) || true
+  vagrant box remove --provider $FLAGS_provider --force $nm_box || true
 
   mkdir -p $FLAGS_builddir
   run $shome/bin/train start \
