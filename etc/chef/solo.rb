@@ -8,4 +8,6 @@ require 'chef/handler/json_file'
 report_handlers << Chef::Handler::JsonFile.new(:path => "#{shome}/var/chef/reports")
 exception_handlers << Chef::Handler::JsonFile.new(:path => "#{shome}/var/chef/reports")
 
+ssl_verify_mode :verify_peer
+
 Mixlib::Log::Formatter.show_time = false
