@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 #/ NAME
 #/     build docker - builds train with docker (shell provider)

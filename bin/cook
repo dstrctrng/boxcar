@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 #/ NAME
 #/     cook -- call chef-solo with all the weird stuff tvdinners need

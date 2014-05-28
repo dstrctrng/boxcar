@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 #/ NAME
 #/     vagrant rsync - rsync with vagrant ssh-config
@@ -29,7 +29,7 @@ function main {
   local cmd_ssh="$(which ssh)"
 
   cat > $tmp_config/ssh <<EOF
-#!/bin/bash
+#!/usr/bin/env bash
 exec $cmd_ssh -F $tmp_config/ssh_config "${d}@"
 EOF
   chmod 755 $tmp_config/ssh

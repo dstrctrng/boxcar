@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 #/ NAME
 #/     build aws -- builds a boxcar with aws

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 #/ NAME
 #/     vagrant scp - scp with vagrant ssh-config
@@ -22,7 +22,7 @@ function main {
   local cmd_scp="$(which scp)"
 
   cat > $tmp_config/scp <<EOF
-#!/bin/bash
+#!/usr/bin/env bash
 exec $cmd_scp -F $tmp_config/ssh_config "${d}@"
 EOF
   chmod 755 $tmp_config/scp

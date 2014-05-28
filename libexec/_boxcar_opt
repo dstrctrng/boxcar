@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 function guess_vagrant_default_provider {
   local pth_vboxmanage="$(which VBoxManage 2>&- || true)"
