@@ -51,7 +51,7 @@ function demo_in_vagrant {
   local pth_custom="${@:$(($#))}"
 
   local tmp_ssh_config="$(mktemp -t XXXXXXXXX)"
-  (cd $FLAGS_release_dir && vagrant ssh-config | sed -n '/^Host/,$p' > "$tmp_ssh_config")
+  (cd $FLAGS_release_dir && vagrant ssh-config | sed -n '/^Host/,$p' | perl -ne 'unless (m{IdentitiesOnly} && $last !~ m{IdentityFile}) { print }; $last = $_' > "$tmp_ssh_config")
   $pth_custom "$tmp_ssh_config" "${@:1:$(($#-1))}"
   rm -f "$tmp_ssh_config"
 }
@@ -254,13 +254,8 @@ function custom_hook {
 
     echo "  ForwardAgent yes" >> "$save_config"
     
-    local agent_loader=""
-    if [[ -f "$SSH_AGENT_FILE" ]]; then
-      agent_loader="source $SSH_AGENT_FILE"
-    fi
-
     cat >> $OVERRIDE_failhook << ____EOF
-    (${agent_loader:+${agent_loader}; }ssh -F "$save_config" -t default "exec ${root_loader:+${root_loader} }env BUILD_IMAGE_PHASE=$BUILD_IMAGE_PHASE ${cache_loaders:+${cache_loaders} }bash")
+    (ssh -F "$save_config" -t default "exec ${root_loader:+${root_loader} }env BUILD_IMAGE_PHASE=$BUILD_IMAGE_PHASE ${cache_loaders:+${cache_loaders} }bash")
 ____EOF
   fi
 

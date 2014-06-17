@@ -27,6 +27,8 @@ DEFINE_string "username" "ubuntu" "Vagrant ssh username"
 DEFINE_string "address" "NA" "Script defined generic address"
 DEFINE_string "anchor" "." "Initial working directory"
 DEFINE_string "apps" "" "List of apps to install"
+DEFINE_boolean "agent" "$FLAGS_FALSE" "Use ssh-agent"
+DEFINE_string "key" "" "Use ssh private key"
 
 DEFINE_string builddir "$BOXCAR/build" "Build directory"
 DEFINE_string cachedir "$BOXCAR/build" "Cache directory"

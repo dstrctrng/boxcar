@@ -14,6 +14,7 @@ function remote_install {
   id -a
   uname -a
   pwd
+  ssh-add -list
   false
 }
 

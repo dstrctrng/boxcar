@@ -29,15 +29,16 @@ function conf_vagrant {
   local nm_box="$1"; shift
 
   local tmp_dna="$(mktemp -t XXXXXXXXX)"
-
   cat > "$tmp_dna" <<EOF
   { 
     "run_list": ["vagrant::${FLAGS_vprovider}"], 
     "vagrant": { 
+      "image": "$FLAGS_address",
       "box": "${nm_box}",
       "release_dir": "$FLAGS_release_dir",
       "ssh_username": "$FLAGS_username",
-      "image": "$FLAGS_address"
+      "ssh_forward_agent": true,
+      "ssh_private_key_path": null
     }
   }
 EOF

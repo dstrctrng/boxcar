@@ -2,12 +2,6 @@
 
 #/ NAME
 #/     build aws -- builds a boxcar with aws
-#/
-#/ SYNOPSIS
-#/   bin/build aws
-#/
-#/ EXAMPLES
-#/     $ bin/build aws
 
 # figure out the project root under which bin, lib live
 shome="$(cd -P -- "$(dirname -- "$BASH_SOURCE")/.." && pwd -P)"
@@ -118,18 +112,20 @@ function conf_vagrant {
   { 
     "run_list": ["vagrant::aws"], 
     "vagrant": { 
-      "box": "${nm_box}",
-      "release_dir": "$FLAGS_release_dir",
       "access_key_id": "$AWS_ACCESS_KEY",
       "secret_access_key": "$AWS_SECRET_KEY",
       "keypair_name": "$nm_keypair",
       "instance_type": "m1.large",
+      "root_volume_size": "$FLAGS_rootsize",
+      "box": "${nm_box}",
+      "release_dir": "$FLAGS_release_dir",
       "ssh_username": "$FLAGS_username",
-      "ssh_private_key_path": "$pth_private_key_path",
-      "root_volume_size": "$FLAGS_rootsize"
+      "ssh_forward_agent": true,
+      "ssh_private_key_path": "$pth_private_key_path"
     }
   }
 EOF
+  cat $tmp_dna
   $shome/bin/cook -j "$tmp_dna"
   rm -f "$tmp_dna"
 }

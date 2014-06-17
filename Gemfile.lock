@@ -65,7 +65,7 @@ GEM
     systemu (2.5.2)
     tvd-tvdinner (0.0.27)
       chef
-    tvd-vagrant (0.0.24)
+    tvd-vagrant (0.0.25)
       tvd-tvdinner
     tvdinner (0.0.6)
       chef

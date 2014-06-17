@@ -2,12 +2,6 @@
 
 #/ NAME
 #/     build virtualbox - builds a train with virtualbox provider
-#/
-#/ SYNOPSIS
-#/   bin/build virtualbox
-#/
-#/ EXAMPLES
-#/     $ bin/build virtualbox
 
 # figure out the project root under which bin, lib live
 shome="$(cd -P -- "$(dirname -- "$BASH_SOURCE")/.." && pwd -P)"
@@ -61,10 +55,12 @@ function conf_vagrant {
     "vagrant": { 
       "box": "$nm_box",
       "release_dir": "$FLAGS_release_dir",
-      "ssh_username": "$FLAGS_username"
+      "ssh_username": "$FLAGS_username",
+      "ssh_forward_agent": true
     }
   }
 EOF
+  cat $tmp_dna
   $shome/bin/cook -j "$tmp_dna"
   rm -f "$tmp_dna"
 }

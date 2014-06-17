@@ -160,8 +160,8 @@ function main {
   if ! (build_train "$@"); then
     if [[ -s "$pth_failhook" ]]; then
       fuglet "debug ssh"
-      bash $pth_failhook || true
       cat $pth_failhook
+      bash $pth_failhook || true
     fi
   elif [[ -z "${FLAGS_failhook}" ]]; then
     rm -f $pth_failhook
