@@ -164,7 +164,7 @@ function custom_hook {
   local nm_bootstrap="$(basename "$pth_bootstrap")"
 
   local ubuntu="$FLAGS_TRUE"
-  if [[ "(ssh -F $pth_ssh_config uname -s)" != "Linux" ]]; then
+  if [[ "$(ssh -F $pth_ssh_config uname -s)" != "Linux" ]]; then
     ubuntu="$FLAGS_FALSE"
   fi
 
