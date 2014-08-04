@@ -95,11 +95,11 @@ function instance_status {
   fi
 
   id_instance="$(cat $FLAGS_release_dir/.vagrant/machines/default/aws/id)"
-  ec2-describe-instances --region "$FLAGS_region" "$id_instance" | awk '$1 == "INSTANCE" { print $4 }'
+  aws ec2 describe-instances --instance-ids "$id_instance" | jq -r '.Reservations[0].Instances[0].State.Name'
 }
 
 function image_status {
-  ec2-describe-images --region "$FLAGS_region" "$id_image" | awk '$1 == "IMAGE" { print $5 }'
+  aws ec2 describe-instances --instance-ids "$id_image" | jq -r '.Images[0].State'
 }
 
 function conf_vagrant {
@@ -133,9 +133,7 @@ EOF
 function build_keypair {
 local nm_keypair="tmp-build-ami-keypair-$(basename "${FLAGS_output}" .box | perl -pe 's#[^a-zA-Z0-9]+#-#g')-$(TZ=UTC date +%s)-$$"
   {
-    rm -f "$FLAGS_release_dir/.id_rsa"
-    ssh-keygen -N "" -f "$FLAGS_release_dir/.id_rsa"
-    ec2-import-keypair --region $FLAGS_region --public-key-file "$FLAGS_release_dir/.id_rsa.pub" $nm_keypair
+    aws ec2 create-key-pair --key-name "$nm_keypair" | jq -r '.KeyMaterial' > "$FLAGS_release_dir/.id_rsa"
   } 1>&2
 
   echo "$nm_keypair"
@@ -143,7 +141,7 @@ local nm_keypair="tmp-build-ami-keypair-$(basename "${FLAGS_output}" .box | perl
 
 function delete_keypair {
   local nm_keypair="$1"; shift
-  ec2-delete-keypair --region $FLAGS_region $nm_keypair
+  aws ec2 delete-key-pair --key-name "$nm_keypair"
 }
 
 function early_termination {
