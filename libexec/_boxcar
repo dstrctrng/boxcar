@@ -60,6 +60,7 @@ function build_vagrant {
   mkdir -p $FLAGS_release_dir
 
   local nm_keypair="$(build_keypair)"
+  rm -rf "$FLAGS_release_dir/.vagrant"
   demo_vagrant "$nm_keypair" "$FLAGS_boxname" "$@"
   early_termination
 

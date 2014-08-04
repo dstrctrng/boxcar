@@ -133,7 +133,8 @@ EOF
 function build_keypair {
 local nm_keypair="tmp-build-ami-keypair-$(basename "${FLAGS_output}" .box | perl -pe 's#[^a-zA-Z0-9]+#-#g')-$(TZ=UTC date +%s)-$$"
   {
-    aws ec2 create-key-pair --key-name "$nm_keypair" | jq -r '.KeyMaterial' > "$FLAGS_release_dir/.id_rsa"
+    aws ec2 create-key-pair --key-name "$nm_keypair" | jq -r '.KeyMaterial' > "$FLAGS_release_dir/.${nm_keypair}"
+    chmod 0600 "$FLAGS_release_dir/.${nm_keypair}"
   } 1>&2
 
   echo "$nm_keypair"
@@ -202,7 +203,7 @@ function demo_vagrant {
   local nm_keypair="$1"; shift
   local nm_box="$1"; shift
 
-  conf_vagrant "$nm_box" "$nm_keypair" "$FLAGS_release_dir/.id_rsa"
+  conf_vagrant "$nm_box" "$nm_keypair" "$FLAGS_release_dir/.$nm_keypair"
   (cd $FLAGS_release_dir && vagrant up --provider aws)
   demo_in_vagrant "$@"
 }
