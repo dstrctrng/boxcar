@@ -99,7 +99,7 @@ function instance_status {
 }
 
 function image_status {
-  aws ec2 describe-instances --instance-ids "$id_image" | jq -r '.Images[0].State'
+  aws ec2 describe-images --image-ids "$id_image" | jq -r '.Images[0].State'
 }
 
 function conf_vagrant {
