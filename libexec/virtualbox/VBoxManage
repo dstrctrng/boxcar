@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+
+set -efu
+
+if [[ -x "${ORIGINAL_VBOX_MANAGE:-}" ]]; then
+  if [[ -n "${VBOX_MANAGE_LOG:-}" ]]; then
+    printf '%s\n' "$ORIGINAL_VBOX_MANAGE $*" >> "$VBOX_MANAGE_LOG"
+  fi
+
+  if [[ "$#" != 0 && "$1" = "showvminfo" ]]; then
+    tmp_stdout="$(mktemp -t XXXXXX)"
+    tmp_stderr="$(mktemp -t XXXXXX)"
+
+    count=0
+    while [[ "$count" -lt 30 ]]; do
+      count="$((count + 1))"
+      if [[ -n "${VBOX_MANAGE_LOG:-}" ]]; then
+        printf '%s: %s\n' "$count" "$ORIGINAL_VBOX_MANAGE $*" >> "$VBOX_MANAGE_LOG"
+      fi
+      if ! "$ORIGINAL_VBOX_MANAGE" "$@" 2>$tmp_stderr >$tmp_stdout; then
+        if egrep -q "not ready" "$tmp_stderr"; then
+          continue
+        fi
+      fi
+
+      break
+    done
+
+    rm -f $tmp_stderr $tmp_stdout
+  fi
+
+  exec "$ORIGINAL_VBOX_MANAGE" "$@"
+fi
+
+exec false
