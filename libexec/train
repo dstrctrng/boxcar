@@ -19,6 +19,7 @@ require boxcar_opt
 
 DEFINE_boolean build "$FLAGS_FALSE" "Also run the :build hooks"
 DEFINE_boolean clean "$FLAGS_FALSE" "Build the basic clean boxcar"
+DEFINE_boolean pre   "$FLAGS_TRUE"  "Build the clean(pre) image"
 DEFINE_string final "" "Box name for the end train"
 
 function run {
@@ -113,9 +114,11 @@ function build_train {
   local train="${FLAGS_release}"
 
   if [[ "$FLAGS_clean" = "$FLAGS_TRUE" ]]; then
-    # boxcar precise -> precise-clean(pre)
-    if ! (build_boxcars "$train" "clean"); then
-      return 1
+    if [[ "$FLAGS_pre" = "$FLAGS_TRUE" ]]; then
+      # boxcar precise -> precise-clean(pre)
+      if ! (build_boxcars "$train" "clean"); then
+        return 1
+      fi
     fi
 
     # boxcar precise-clean(pre) -> precise-clean
