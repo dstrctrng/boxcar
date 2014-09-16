@@ -4,10 +4,10 @@
 #/     build-all - builds vagrant boxes from scratch
 #/
 #/ SYNOPSIS
-#/     bin/build all virtualbox precise
-#/     bin/build all virtualbox precise precise clean ...
-#/     bin/build all aws precise
-#/     bin/build all aws precise precise clean ...
+#/     bin/build all virtualbox trusty
+#/     bin/build all virtualbox trusty trusty clean ...
+#/     bin/build all aws trusty
+#/     bin/build all aws trusty trusty clean ...
 
 # figure out the project root under which bin, lib live
 shome="$(unset CDPATH; cd -P -- "$(dirname -- "$BASH_SOURCE")/.." && pwd -P)"
@@ -18,7 +18,6 @@ require boxcar
 require boxcar_opt
 
 DEFINE_boolean build "$FLAGS_FALSE" "Also run the :build hooks"
-DEFINE_boolean clean "$FLAGS_FALSE" "Build the basic clean boxcar"
 DEFINE_boolean pre   "$FLAGS_TRUE"  "Build the clean(pre) image"
 DEFINE_string final "" "Box name for the end train"
 
@@ -85,13 +84,7 @@ function build_boxcars {
     if [[ "$#" = 0 && -n "$FLAGS_final" ]]; then
       output="$FLAGS_final"
     else
-      if [[ "$nm_hook" = "clean" ]]; then
-        output="$output-${nm_hook}(pre)"
-      elif [[ "$nm_hook" = "clean-$FLAGS_provider" ]]; then
-        output="${output%-clean*}-clean"
-      else
-        output="$output-$(echo $raw_hook | perl -pe 's{:(\S+)}{($1)}g')"
-      fi
+      output="$output-$(echo $raw_hook | perl -pe 's{:(\S+)}{($1)}g')"
     fi
 
     output="${output#${FLAGS_release}-}"
@@ -110,30 +103,14 @@ function build_train {
   FLAGS_cachedir="$VAULT/boxcar/${FLAGS_release}"
   export OVERRIDE_cachedir="$FLAGS_cachedir"
 
-  # boxcar precise
+  # boxcar trusty
   local train="${FLAGS_release}"
 
-  if [[ "$FLAGS_clean" = "$FLAGS_TRUE" ]]; then
-    if [[ "$FLAGS_pre" = "$FLAGS_TRUE" ]]; then
-      # boxcar precise -> precise-clean(pre)
-      if ! (build_boxcars "$train" "clean"); then
-        return 1
-      fi
-    fi
-
-    # boxcar precise-clean(pre) -> precise-clean
-    if ! (build_boxcars "$train-clean(pre)" "clean-${FLAGS_provider}"); then
-      return 1
-    fi
-
-    train="$train-clean"
-  else
-    # boxcar $1
-    if [[ "$1" != "$FLAGS_release" ]]; then
-      train="${FLAGS_release}-$1"
-    fi
-    shift
+  # boxcar $1
+  if [[ "$1" != "$FLAGS_release" ]]; then
+    train="${FLAGS_release}-$1"
   fi
+  shift
   
   if [[ "$#" > 0 ]]; then
     if ! (build_boxcars "$train" "$@"); then

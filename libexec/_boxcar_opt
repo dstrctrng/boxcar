@@ -17,7 +17,7 @@ function guess_vagrant_default_provider {
 }
 
 DEFINE_string "boxname" "" "Vagrant box name"
-DEFINE_string 'release' "precise" 'Ubuntu release'
+DEFINE_string 'release' "trusty" 'Ubuntu release'
 DEFINE_string 'provider' "$(guess_vagrant_default_provider)" 'Vagrant provider'
 DEFINE_string 'branch' "master" 'Generic label'
 DEFINE_string "output" "" "Where to bundle the vagrant box"

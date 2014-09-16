@@ -24,7 +24,12 @@ function remote_install {
   done
   set -f
 
+  # enable root
+  mkdir -p /etc/cloud/cloud.cfg.d
+  echo 'disable_root: false' > /etc/cloud/cloud.cfg.d/01_enable_root.cfg
+
   # update everything
+  rm -rf /var/lib/apt/lists
   aptitude update
   aptitude -y -o Dpkg::Options::=--force-confdef -o Dpkg::Options::=--force-confnew dist-upgrade
   aptitude -y -o Dpkg::Options::=--force-confdef -o Dpkg::Options::=--force-confnew safe-upgrade
