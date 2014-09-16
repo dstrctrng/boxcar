@@ -121,6 +121,8 @@ function build_train {
 
 # entry point
 function main {
+  unset VAGRANT_CWD 
+
   if [[ -z "${FLAGS_failhook}" ]]; then
     pth_failhook="$(mktemp -t XXXXXX)"
   else 
