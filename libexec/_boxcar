@@ -223,8 +223,8 @@ function custom_hook {
 
   logger_info "starting $nm_bootstrap"
   local failed=0
-  echo "REMOTE: ssh -F $pth_ssh_config -A default exec ${root_loader:+${root_loader} }env BUILD_IMAGE_PHASE=$BUILD_IMAGE_PHASE BUILD_BRANCH=${OVERRIDE_branch} $cache_loaders .boxcar/anchor ${OVERRIDE_anchor} .boxcar/$nm_bootstrap"
-  ssh -F "$pth_ssh_config" -A default "exec ${root_loader:+${root_loader} }env BUILD_IMAGE_PHASE=$BUILD_IMAGE_PHASE BUILD_BRANCH=${OVERRIDE_branch} $cache_loaders .boxcar/anchor ${OVERRIDE_anchor} .boxcar/$nm_bootstrap" || failed="$?"
+  echo "REMOTE: ssh -F $pth_ssh_config -A default exec ${root_loader:+${root_loader} }env BUILD_IMAGE_PHASE=$BUILD_IMAGE_PHASE OVERRIDE_apps="$OVERRIDE_apps" BUILD_BRANCH=${OVERRIDE_branch} $cache_loaders .boxcar/anchor ${OVERRIDE_anchor} .boxcar/$nm_bootstrap"
+  ssh -F "$pth_ssh_config" -A default "exec ${root_loader:+${root_loader} }env BUILD_IMAGE_PHASE=$BUILD_IMAGE_PHASE OVERRIDE_apps="$OVERRIDE_apps" BUILD_BRANCH=${OVERRIDE_branch} $cache_loaders .boxcar/anchor ${OVERRIDE_anchor} .boxcar/$nm_bootstrap" || failed="$?"
   if [[ "$failed" = 0 ]]; then
     logger_info "success! $nm_bootstrap"
 

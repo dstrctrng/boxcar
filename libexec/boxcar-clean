@@ -41,6 +41,8 @@ function remote_install {
   echo 'APT::Install-Recommends "0";' | tee /etc/apt/apt.conf.d/00DisableInstallRecommends
   echo 'Acquire::Languages "none";'  | tee /etc/apt/apt.conf.d/99DontAcquireLanguages
   aptitude -y install wget curl git rsync make bsdtar netcat dkms unzip
+  aptitude -y install flex python-{dev,pip,setuptools,virtualenv}
+  aptitude -y install runit daemontools
 
   # package cleanup
   aptitude clean
@@ -57,6 +59,8 @@ EOF
   # remove cached network configurations
   rm -rf /etc/udev/rules.d/70-persistent-net.rules /lib/udev/rules.d/75-persistent-net-generator.rules /dev/.udev /var/lib/dhcp3
   mkdir -p /etc/udev/rules.d/70-persistent-net.rules
+
+  sudo sync
 }
 
 if [[ "$#" = 0 ]]; then
@@ -79,6 +83,7 @@ function main {
   local pth_ssh_config="$1"
 
   standard_root_hook "$bootstrap" "$@"
+  rsync -ia $(find .vagrant -name private_key) ~/.ssh/
 }
 
 require sub "$BASH_SOURCE" "$@"
