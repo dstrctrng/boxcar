@@ -82,6 +82,8 @@ bootstrap="$BASH_SOURCE"
 function main {
   local pth_ssh_config="$1"
 
+  local pth_output="${OVERRIDE_output%.box}"
+  rsync -ia "$(find $pth_output/.vagrant/ -name 'private_key')" "$pth_output/"
   standard_root_hook "$bootstrap" "$@"
 }
 
