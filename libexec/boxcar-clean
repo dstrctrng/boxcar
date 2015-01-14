@@ -83,7 +83,6 @@ function main {
   local pth_ssh_config="$1"
 
   standard_root_hook "$bootstrap" "$@"
-  rsync -ia $(find .vagrant -name private_key) ~/.ssh/
 }
 
 require sub "$BASH_SOURCE" "$@"

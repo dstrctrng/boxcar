@@ -63,8 +63,6 @@ function refresh {
   if [[ "$FLAGS_fast" = "$FLAGS_FALSE" ]]; then
     vagrant box add $nm_box $FLAGS_builddir/$nm_output.box
   fi
-
-  rm -rf $FLAGS_builddir/${nm_output}
 }
 
 function build_boxcars {
