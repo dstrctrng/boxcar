@@ -13,7 +13,7 @@ require boxcar_opt
 
 function vbox_state {
   local id_instance="$1"; shift
-  VBoxManage showvminfo "$id_instance" --machinereadable | awk '$1 ~ /^VMState=/ { split($1,a,"="); split(a[2],b,"\""); print b[2] }'
+  VBoxManage showvminfo "$id_instance" --machinereadable | awk '$1 ~ /^VMState=/ { split($1,a,"="); split(a[2],b,"\""); print b[2] }' 2>&- || true
 }
 
 function until_vagrant {
@@ -21,11 +21,11 @@ function until_vagrant {
 
   logger_info "until $wanted"
 
-  if [[ ! -f $FLAGS_release_dir/.vagrant/machines/default/virtualbox/id ]]; then
+  if [[ ! -f $FLAGS_release_dir/.vagrant/machines/default/${FLAGS_provider}/id ]]; then
     return 1
   fi
 
-  local id_instance="$(cat $FLAGS_release_dir/.vagrant/machines/default/virtualbox/id)"
+  local id_instance="$(cat $FLAGS_release_dir/.vagrant/machines/default/${FLAGS_provider}/id)"
 
   while true; do
     local current_state="$(vbox_state "$id_instance")"
@@ -39,7 +39,7 @@ function until_vagrant {
 }
 
 function forwarded_ssh_port {
-  local id_instance="$(cat $FLAGS_release_dir/.vagrant/machines/default/virtualbox/id)"
+  local id_instance="$(cat $FLAGS_release_dir/.vagrant/machines/default/${FLAGS_provider}/id)"
   VBoxManage showvminfo "$id_instance" --machinereadable | awk '$1 ~ /^Forwarding\(.*?,22"/ { split($1,a,","); print a[4] }'
 }
 
@@ -92,7 +92,7 @@ function demo_vagrant {
   local id_image="$1"; shift
 
   conf_vagrant "$id_image"
-  (cd $FLAGS_release_dir && vagrant up --provider virtualbox)
+  (cd $FLAGS_release_dir && vagrant up --provider ${FLAGS_provider})
   until_vagrant "running"
   until_port_open localhost "$(forwarded_ssh_port)"
   demo_in_vagrant "$@"
