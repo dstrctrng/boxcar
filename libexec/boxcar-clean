@@ -60,7 +60,7 @@ EOF
   rm -rf /etc/udev/rules.d/70-persistent-net.rules /lib/udev/rules.d/75-persistent-net-generator.rules /dev/.udev /var/lib/dhcp3
   mkdir -p /etc/udev/rules.d/70-persistent-net.rules
 
-  sudo sync
+  sync; sync; sync
 }
 
 if [[ "$#" = 0 ]]; then
