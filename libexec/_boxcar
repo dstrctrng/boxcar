@@ -229,7 +229,7 @@ function custom_hook {
     logger_info "success! $nm_bootstrap"
 
     if [[ "$ubuntu" = "$FLAGS_TRUE" ]]; then
-      ssh -F "$pth_ssh_config" root@default env LANG=C rm -vf /etc/apt/apt.conf.d/01proxy /var/run/reboot-required.pkgs /var/run/reboot-required || true
+      ssh -F "$pth_ssh_config" default sudo env LANG=C rm -vf /etc/apt/apt.conf.d/01proxy /var/run/reboot-required.pkgs /var/run/reboot-required || true
     fi
 
     ssh -F "$pth_ssh_config" default env LANG=C rm -vfr ./.boxcar
