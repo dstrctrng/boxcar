@@ -115,7 +115,7 @@ function conf_vagrant {
       "access_key_id": "$AWS_ACCESS_KEY",
       "secret_access_key": "$AWS_SECRET_KEY",
       "keypair_name": "$nm_keypair",
-      "instance_type": "m1.large",
+      "instance_type": "$FLAGS_instype",
       "root_volume_size": "$FLAGS_rootsize",
       "box": "${nm_box}",
       "release_dir": "$FLAGS_release_dir",
