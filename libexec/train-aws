@@ -15,7 +15,7 @@ DEFINE_string "ami" "" "AMI to use for bootstrap, defaults to latest Ubuntu clou
 DEFINE_string 'region' "${AWS_DEFAULT_REGION:-us-west-1}" 'AWS region'
 DEFINE_string 'disk' 'ebs' 'AWS disk type'
 DEFINE_string 'arch' 'amd64' 'AWS arch'
-DEFINE_string 'instype' 'm1.large' "AWS instance type"
+DEFINE_string 'instype' 'r3.large' "AWS instance type"
 DEFINE_string 'rootsize' '50' 'Size (GB) of root volume'
 
 function pick_ami {
